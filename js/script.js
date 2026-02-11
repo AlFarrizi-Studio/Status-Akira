@@ -2,7 +2,7 @@
  * Akira Status Page - JavaScript
  * Real-time Lavalink Server Status Monitor
  * 
- * @version 2.1.0
+ * @version 2.1.1
  * @author Akira
  */
 
@@ -14,13 +14,12 @@
     // ============================================
     const CONFIG = {
         server: {
-            // Cloudflare Tunnel URL (TANPA https:// atau wss://)
             host: 'understand-nec-our-pushed.trycloudflare.com',
             password: 'AkiraMusic',
-            secure: true // Cloudflare Tunnel = SELALU true
+            secure: true
         },
         reconnect: {
-            maxAttempts: 10,
+            maxAttempts: 15,
             baseDelay: 2000,
             maxDelay: 30000
         },
@@ -28,7 +27,7 @@
         iconsPath: 'icons/'
     };
 
-    // Build URLs - Cloudflare Tunnel SELALU secure (wss/https)
+    // Build URLs
     const URLS = {
         websocket: `wss://${CONFIG.server.host}/v4/websocket`,
         stats: `https://${CONFIG.server.host}/v4/stats`,
@@ -415,92 +414,8 @@
     }
 
     // ============================================
-    // HTTP API Functions
-    // ============================================
-
-    async function fetchStats() {
-        const startTime = performance.now();
-        
-        try {
-            const response = await fetch(URLS.stats, {
-                method: 'GET',
-                headers: {
-                    'Authorization': CONFIG.server.password,
-                    'Accept': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            const latency = Math.round(performance.now() - startTime);
-            
-            updatePing(latency);
-            updateStats(data);
-            
-            return data;
-        } catch (error) {
-            console.error('Failed to fetch stats:', error);
-            throw error;
-        }
-    }
-
-    async function checkServerAvailability() {
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-            const response = await fetch(URLS.version, {
-                method: 'GET',
-                signal: controller.signal,
-                headers: {
-                    'Authorization': CONFIG.server.password
-                }
-            });
-
-            clearTimeout(timeoutId);
-            console.log('Server check response:', response.status);
-            return response.ok;
-        } catch (error) {
-            console.warn('Server availability check failed:', error.message);
-            return false;
-        }
-    }
-
-    function startHttpPolling() {
-        if (state.httpPollInterval) return;
-
-        console.log('📡 Starting HTTP polling mode');
-        updateStatus('online');
-        updateConnectionMode('http-polling');
-
-        fetchStats().catch(console.error);
-
-        state.httpPollInterval = setInterval(async () => {
-            try {
-                await fetchStats();
-                if (!state.isConnected) {
-                    updateStatus('online');
-                }
-            } catch (error) {
-                console.error('HTTP poll failed:', error);
-                updateStatus('offline');
-            }
-        }, CONFIG.updateInterval);
-    }
-
-    function stopHttpPolling() {
-        if (state.httpPollInterval) {
-            clearInterval(state.httpPollInterval);
-            state.httpPollInterval = null;
-            console.log('Stopped HTTP polling');
-        }
-    }
-
-    // ============================================
-    // WebSocket Connection
+    // WebSocket Connection (PRIMARY METHOD)
+    // WebSocket TIDAK KENA CORS!
     // ============================================
 
     function connectWebSocket() {
@@ -510,7 +425,9 @@
         }
 
         if (state.ws) {
-            state.ws.close();
+            try {
+                state.ws.close();
+            } catch(e) {}
             state.ws = null;
         }
 
@@ -521,14 +438,15 @@
         state.wsConnectStartTime = performance.now();
 
         try {
+            // WebSocket dengan headers untuk Lavalink
             state.ws = new WebSocket(URLS.websocket);
 
             const connectTimeout = setTimeout(() => {
                 if (state.ws && state.ws.readyState === WebSocket.CONNECTING) {
-                    console.warn('⏰ WebSocket connection timeout');
+                    console.warn('⏰ WebSocket connection timeout (15s)');
                     state.ws.close();
                 }
-            }, 10000);
+            }, 15000);
 
             state.ws.onopen = () => {
                 clearTimeout(connectTimeout);
@@ -563,7 +481,7 @@
         updateStatus('online');
         updateConnectionMode('websocket');
         updatePing(connectTime);
-        showToast('Connected to Lavalink via WebSocket!', 'success');
+        showToast('Connected to NodeLink via WebSocket!', 'success');
 
         stopHttpPolling();
     }
@@ -572,6 +490,7 @@
         try {
             const data = JSON.parse(event.data);
             
+            // Calculate ping
             const now = Date.now();
             if (state.lastPingTime && data.op === 'stats') {
                 const instantPing = Math.min(now - state.lastPingTime, 1000);
@@ -585,13 +504,15 @@
                     updateStats(data);
                     break;
                 case 'ready':
-                    console.log('🎵 Lavalink ready:', data);
-                    showToast(`Session: ${data.sessionId?.substring(0, 8)}...`, 'info');
+                    console.log('🎵 NodeLink ready:', data);
+                    showToast(`Session: ${data.sessionId?.substring(0, 8) || 'active'}...`, 'info');
                     break;
                 case 'playerUpdate':
                 case 'event':
                     console.debug('Event:', data.op);
                     break;
+                default:
+                    console.debug('Unknown op:', data.op, data);
             }
         } catch (error) {
             console.error('Error parsing message:', error);
@@ -603,12 +524,44 @@
         state.isConnected = false;
         state.ws = null;
 
+        // Common close codes
+        const closeReasons = {
+            1000: 'Normal closure',
+            1001: 'Going away',
+            1002: 'Protocol error',
+            1003: 'Unsupported data',
+            1006: 'Abnormal closure (connection lost)',
+            1007: 'Invalid data',
+            1008: 'Policy violation',
+            1009: 'Message too big',
+            1010: 'Missing extension',
+            1011: 'Internal error',
+            1015: 'TLS handshake failed',
+            4001: 'Invalid authorization',
+            4004: 'Session not found',
+            4006: 'Session timeout',
+            4009: 'Session closed'
+        };
+
+        if (closeReasons[event.code]) {
+            console.log(`Close reason: ${closeReasons[event.code]}`);
+        }
+
+        // Check if we should reconnect
+        if (event.code === 4001) {
+            showToast('Invalid password! Check your config.', 'error', 10000);
+            updateStatus('offline');
+            updateConnectionMode('offline');
+            return; // Don't reconnect with wrong password
+        }
+
         if (state.reconnectAttempts < CONFIG.reconnect.maxAttempts) {
             attemptReconnect();
         } else {
-            console.log('Max attempts reached, switching to HTTP polling');
-            showToast('Switched to HTTP polling', 'warning');
-            startHttpPolling();
+            console.log('Max reconnect attempts reached');
+            updateStatus('offline');
+            updateConnectionMode('offline');
+            showToast('Connection failed. Click Refresh to retry.', 'error');
         }
     }
 
@@ -618,7 +571,8 @@
         if (state.reconnectAttempts < CONFIG.reconnect.maxAttempts) {
             attemptReconnect();
         } else {
-            startHttpPolling();
+            updateStatus('offline');
+            updateConnectionMode('offline');
         }
     }
 
@@ -636,45 +590,41 @@
         state.reconnectTimeout = setTimeout(connectWebSocket, delay);
     }
 
+    function stopHttpPolling() {
+        if (state.httpPollInterval) {
+            clearInterval(state.httpPollInterval);
+            state.httpPollInterval = null;
+        }
+    }
+
     // ============================================
     // Event Handlers
     // ============================================
 
-    async function handleRefresh() {
+    function handleRefresh() {
         console.log('🔄 Manual refresh');
         
         state.reconnectAttempts = 0;
         stopHttpPolling();
         
         if (state.ws) {
-            state.ws.close();
+            try {
+                state.ws.close();
+            } catch(e) {}
         }
 
         resetStats();
-        showToast('Refreshing...', 'info');
+        showToast('Reconnecting...', 'info');
         
-        setTimeout(async () => {
-            const available = await checkServerAvailability();
-            
-            if (available) {
-                connectWebSocket();
-                
-                setTimeout(() => {
-                    if (!state.isConnected && !state.httpPollInterval) {
-                        startHttpPolling();
-                    }
-                }, 8000);
-            } else {
-                showToast('Server not reachable', 'error');
-                updateStatus('offline');
-                updateConnectionMode('offline');
-            }
+        setTimeout(() => {
+            connectWebSocket();
         }, 500);
     }
 
     function handleVisibilityChange() {
         if (document.visibilityState === 'visible') {
-            if (!state.isConnected && !state.httpPollInterval) {
+            if (!state.isConnected) {
+                console.log('Page visible, reconnecting...');
                 state.reconnectAttempts = 0;
                 connectWebSocket();
             }
@@ -685,7 +635,7 @@
         console.log('🌐 Network restored');
         showToast('Network restored', 'success');
         
-        if (!state.isConnected && !state.httpPollInterval) {
+        if (!state.isConnected) {
             state.reconnectAttempts = 0;
             connectWebSocket();
         }
@@ -698,18 +648,23 @@
         updateConnectionMode('offline');
         
         stopHttpPolling();
-        if (state.ws) state.ws.close();
+        if (state.ws) {
+            try {
+                state.ws.close();
+            } catch(e) {}
+        }
     }
 
     // ============================================
     // Initialization
     // ============================================
 
-    async function init() {
-        console.log('🎵 Akira Status Page v2.1.0');
+    function init() {
+        console.log('🎵 Akira Status Page v2.1.1');
         console.log('📍 Server:', CONFIG.server.host);
         console.log('🔗 WebSocket:', URLS.websocket);
-        console.log('📊 Stats:', URLS.stats);
+        console.log('');
+        console.log('💡 Note: WebSocket tidak kena CORS, langsung connect!');
 
         cacheElements();
         initMusicSources();
@@ -728,44 +683,12 @@
         window.addEventListener('online', handleOnline);
         window.addEventListener('offline', handleOffline);
 
-        // Check server and connect
-        console.log('🔍 Checking server...');
+        // Langsung connect via WebSocket (tidak perlu check HTTP dulu)
+        console.log('🔌 Attempting direct WebSocket connection...');
         updateStatus('connecting');
         updateConnectionMode('connecting');
-
-        const isAvailable = await checkServerAvailability();
         
-        if (isAvailable) {
-            console.log('✅ Server available!');
-            showToast('Server online, connecting...', 'success');
-            
-            // Try WebSocket
-            connectWebSocket();
-            
-            // Fallback to HTTP after 8s
-            setTimeout(() => {
-                if (!state.isConnected && !state.httpPollInterval) {
-                    console.log('WebSocket timeout, using HTTP');
-                    startHttpPolling();
-                }
-            }, 8000);
-        } else {
-            console.log('❌ Server not available');
-            updateStatus('offline');
-            updateConnectionMode('offline');
-            showToast('Server not reachable', 'error');
-            
-            // Retry every 30s
-            setInterval(async () => {
-                if (!state.isConnected && !state.httpPollInterval) {
-                    const available = await checkServerAvailability();
-                    if (available) {
-                        showToast('Server back online!', 'success');
-                        connectWebSocket();
-                    }
-                }
-            }, 30000);
-        }
+        connectWebSocket();
 
         console.log('✅ Initialized');
     }
@@ -783,11 +706,7 @@
         CONFIG,
         URLS,
         refresh: handleRefresh,
-        fetchStats,
-        checkServer: checkServerAvailability,
-        startHttp: startHttpPolling,
-        stopHttp: stopHttpPolling,
-        connectWs: connectWebSocket
+        connect: connectWebSocket
     };
 
 })();
