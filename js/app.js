@@ -20,14 +20,39 @@ class NodeLinkMonitor {
         this.lastPingTime = null;
         this.statsUpdateInterval = 30000;
         
+        // Music sources dengan mapping ke file icon PNG
         this.musicSources = [
-            'YouTube', 'YouTube Music', 'SoundCloud', 'Unified', 'Spotify',
-            'Apple Music', 'Deezer', 'Tidal', 'Bandcamp', 'Audiomack',
-            'Gaana', 'JioSaavn', 'Last.fm', 'Pandora', 'VK Music',
-            'Mixcloud', 'NicoVideo', 'Bilibili', 'Shazam', 'Eternal Box',
-            'Songlink', 'Qobuz', 'Yandex Music', 'Audius', 'Amazon Music',
-            'Anghami', 'Bluesky', 'Letras.mus.br', 'Piper TTS', 'Google TTS',
-            'Flowery TTS'
+            { name: 'YouTube', icon: 'youtube.png' },
+            { name: 'YouTube Music', icon: 'youtubemusic.png' },
+            { name: 'SoundCloud', icon: 'soundcloud.png' },
+            { name: 'Unified', icon: 'unified.png' },
+            { name: 'Spotify', icon: 'spotify.png' },
+            { name: 'Apple Music', icon: 'applemusic.png' },
+            { name: 'Deezer', icon: 'deezer.png' },
+            { name: 'Tidal', icon: 'tidal.png' },
+            { name: 'Bandcamp', icon: 'bandcamp.png' },
+            { name: 'Audiomack', icon: 'audiomack.png' },
+            { name: 'Gaana', icon: 'gaana.png' },
+            { name: 'JioSaavn', icon: 'jiosaavn.png' },
+            { name: 'Last.fm', icon: 'lastfm.png' },
+            { name: 'Pandora', icon: 'pandora.png' },
+            { name: 'VK Music', icon: 'vkmusic.png' },
+            { name: 'Mixcloud', icon: 'mixcloud.png' },
+            { name: 'NicoVideo', icon: 'nicovideo.png' },
+            { name: 'Bilibili', icon: 'bilibili.png' },
+            { name: 'Shazam', icon: 'shazam.png' },
+            { name: 'Eternal Box', icon: 'eternalbox.png' },
+            { name: 'Songlink', icon: 'songlink.png' },
+            { name: 'Qobuz', icon: 'qobuz.png' },
+            { name: 'Yandex Music', icon: 'yandexmusic.png' },
+            { name: 'Audius', icon: 'audius.png' },
+            { name: 'Amazon Music', icon: 'amazonmusic.png' },
+            { name: 'Anghami', icon: 'anghami.png' },
+            { name: 'Bluesky', icon: 'bluesky.png' },
+            { name: 'Letras.mus.br', icon: 'letras.png' },
+            { name: 'Piper TTS', icon: 'pipertts.png' },
+            { name: 'Google TTS', icon: 'googletts.png' },
+            { name: 'Flowery TTS', icon: 'flowerytts.png' }
         ];
         
         this.init();
@@ -58,7 +83,6 @@ class NodeLinkMonitor {
             clearTimeout(timeoutId);
             
             if (response.ok || response.status === 401) {
-                // Server is reachable (401 means auth required but server is up)
                 console.log('Server is reachable via Cloudflare tunnel');
             }
         } catch (error) {
@@ -75,9 +99,6 @@ class NodeLinkMonitor {
         
         try {
             this.ws = new WebSocket(this.wsUrl);
-            
-            // Set headers via URL parameters (WebSocket doesn't support custom headers in browser)
-            // We'll handle auth in the open event
             
             this.ws.onopen = () => this.handleOpen();
             this.ws.onmessage = (event) => this.handleMessage(event);
@@ -98,7 +119,6 @@ class NodeLinkMonitor {
         this.updateStatus(true);
         this.startPingInterval();
         
-        // Send initial identification
         this.sendMessage({
             op: 'identify',
             d: {
@@ -122,7 +142,6 @@ class NodeLinkMonitor {
                     console.log('NodeLink ready!', data);
                     break;
                 case 'playerUpdate':
-                    // Handle player updates if needed
                     break;
                 case 'event':
                     this.handleEvent(data);
@@ -150,7 +169,6 @@ class NodeLinkMonitor {
         this.updateStatus(false);
         this.stopPingInterval();
         
-        // Attempt to reconnect
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
             this.reconnectAttempts++;
             console.log(`Reconnecting... Attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
@@ -178,7 +196,6 @@ class NodeLinkMonitor {
             this.sendMessage({ op: 'ping' });
         }, 30000);
         
-        // Send initial ping
         this.lastPingTime = Date.now();
         this.sendMessage({ op: 'ping' });
     }
@@ -219,7 +236,6 @@ class NodeLinkMonitor {
         const pingElement = document.getElementById('pingValue');
         this.animateValue(pingElement, parseInt(pingElement.textContent) || 0, ping, 500);
         
-        // Update wave animation speed based on ping
         const waves = document.querySelectorAll('.ping-wave .wave');
         waves.forEach(wave => {
             const speed = Math.max(0.3, Math.min(2, ping / 100));
@@ -228,7 +244,6 @@ class NodeLinkMonitor {
     }
     
     updateStats(data) {
-        // Players
         if (data.players !== undefined) {
             const totalPlayers = document.getElementById('totalPlayers');
             this.animateValue(totalPlayers, parseInt(totalPlayers.textContent) || 0, data.players, 500);
@@ -239,22 +254,18 @@ class NodeLinkMonitor {
             this.animateValue(playingPlayers, parseInt(playingPlayers.textContent) || 0, data.playingPlayers, 500);
         }
         
-        // Uptime
         if (data.uptime !== undefined) {
             this.updateUptime(data.uptime);
         }
         
-        // Memory
         if (data.memory) {
             this.updateMemory(data.memory);
         }
         
-        // CPU
         if (data.cpu) {
             this.updateCPU(data.cpu);
         }
         
-        // Frame Stats
         if (data.frameStats) {
             this.updateFrameStats(data.frameStats);
         }
@@ -268,8 +279,7 @@ class NodeLinkMonitor {
         const formatted = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         document.getElementById('uptimeValue').textContent = formatted;
         
-        // Calculate uptime percentage (assume max 30 days for visual)
-        const maxUptime = 30 * 24 * 60 * 60 * 1000; // 30 days in ms
+        const maxUptime = 30 * 24 * 60 * 60 * 1000;
         const percentage = Math.min((uptimeMs / maxUptime) * 100, 100);
         document.getElementById('uptimeFill').style.width = `${percentage}%`;
     }
@@ -287,7 +297,6 @@ class NodeLinkMonitor {
         document.getElementById('memAllocated').textContent = formatBytes(memory.allocated);
         document.getElementById('memReservable').textContent = formatBytes(memory.reservable);
         
-        // Update battery fill
         const usedPercent = (memory.used / memory.allocated) * 100;
         const batteryFill = document.getElementById('memoryBatteryFill');
         const batteryPercentage = document.getElementById('memoryPercentage');
@@ -295,7 +304,6 @@ class NodeLinkMonitor {
         batteryFill.style.height = `${usedPercent}%`;
         batteryPercentage.textContent = `${Math.round(usedPercent)}%`;
         
-        // Change color based on usage
         if (usedPercent > 80) {
             batteryFill.style.background = 'linear-gradient(135deg, #EF4444, #F59E0B)';
         } else if (usedPercent > 60) {
@@ -306,15 +314,12 @@ class NodeLinkMonitor {
     }
     
     updateCPU(cpu) {
-        // Cores
         document.getElementById('cpuCores').textContent = `${cpu.cores} cores`;
         
-        // System Load
         const systemLoad = (cpu.systemLoad * 100).toFixed(1);
         document.getElementById('systemLoadValue').textContent = `${systemLoad}%`;
         document.getElementById('systemLoadBar').style.width = `${Math.min(systemLoad, 100)}%`;
         
-        // Process Load
         const processLoad = (cpu.lavalinkLoad * 100).toFixed(1);
         document.getElementById('processLoadValue').textContent = `${processLoad}%`;
         document.getElementById('processLoadBar').style.width = `${Math.min(processLoad, 100)}%`;
@@ -334,7 +339,6 @@ class NodeLinkMonitor {
             }
         });
         
-        // Expected is calculated
         if (frameStats.sent !== undefined && frameStats.deficit !== undefined) {
             const expected = frameStats.sent + frameStats.deficit;
             const expectedElement = document.getElementById('frameExpected');
@@ -367,7 +371,6 @@ class NodeLinkMonitor {
             }
         });
         
-        // Reset progress bars
         document.getElementById('systemLoadBar').style.width = '0%';
         document.getElementById('processLoadBar').style.width = '0%';
         document.getElementById('uptimeFill').style.width = '0%';
@@ -385,7 +388,6 @@ class NodeLinkMonitor {
             const elapsed = currentTime - startTime;
             const progress = Math.min(elapsed / duration, 1);
             
-            // Easing function
             const easeOutQuart = 1 - Math.pow(1 - progress, 4);
             
             const current = Math.round(start + diff * easeOutQuart);
@@ -402,38 +404,21 @@ class NodeLinkMonitor {
     renderMusicSources() {
         const grid = document.getElementById('sourcesGrid');
         
-        const getIconClass = (source) => {
-            const lower = source.toLowerCase();
-            if (lower.includes('youtube')) return 'youtube';
-            if (lower.includes('spotify')) return 'spotify';
-            if (lower.includes('soundcloud')) return 'soundcloud';
-            if (lower.includes('apple')) return 'apple';
-            if (lower.includes('deezer')) return 'deezer';
-            if (lower.includes('tidal')) return 'tidal';
-            if (lower.includes('bandcamp')) return 'bandcamp';
-            return 'default';
-        };
-        
-        const getInitials = (source) => {
-            const words = source.split(' ');
-            if (words.length > 1) {
-                return words[0][0] + words[1][0];
-            }
-            return source.substring(0, 2);
-        };
-        
         grid.innerHTML = this.musicSources.map(source => `
             <div class="source-item">
-                <div class="source-icon ${getIconClass(source)}">
-                    ${getInitials(source).toUpperCase()}
-                </div>
-                <span class="source-name">${source}</span>
+                <img 
+                    src="assets/icons/${source.icon}" 
+                    alt="${source.name}" 
+                    class="source-icon"
+                    onerror="this.src='assets/icons/default.png'"
+                >
+                <span class="source-name">${source.name}</span>
             </div>
         `).join('');
     }
 }
 
-// Simulated stats for demo (when WebSocket is not available)
+// Demo Mode untuk testing
 class DemoMode {
     constructor(monitor) {
         this.monitor = monitor;
@@ -446,7 +431,6 @@ class DemoMode {
         
         console.log('Starting demo mode...');
         
-        // Simulate connection after a delay
         setTimeout(() => {
             this.monitor.updateStatus(true);
             this.simulateStats();
@@ -460,7 +444,7 @@ class DemoMode {
             const stats = {
                 players: Math.floor(Math.random() * 50) + 10,
                 playingPlayers: Math.floor(Math.random() * 30) + 5,
-                uptime: Date.now() - (Math.random() * 86400000), // Random uptime up to 1 day
+                uptime: Date.now() - (Math.random() * 86400000),
                 memory: {
                     free: Math.floor(Math.random() * 500000000) + 100000000,
                     used: Math.floor(Math.random() * 800000000) + 200000000,
@@ -493,20 +477,18 @@ class DemoMode {
     }
 }
 
-// Initialize on DOM load
+// Initialize
 document.addEventListener('DOMContentLoaded', () => {
     const monitor = new NodeLinkMonitor();
     
-    // Enable demo mode for testing without actual server
-    // Uncomment the following lines to enable demo mode:
+    // Uncomment untuk demo mode:
     // const demo = new DemoMode(monitor);
     // setTimeout(() => demo.start(), 3000);
     
-    // Expose to window for debugging
     window.nodelink = monitor;
 });
 
-// Handle visibility change to reconnect when page becomes visible
+// Handle visibility change
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && window.nodelink) {
         if (!window.nodelink.isConnected) {
