@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NodeLink Status | Real-time Server Monitor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Background Animation -->
+    <div class="bg-animation"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <!-- Connection Status Bar -->
+    <div class="connection-bar connecting" id="connectionBar"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo-container">
+                <div class="logo">N</div>
+                <span class="logo-text">NodeLink</span>
+            </div>
+            <p class="header-subtitle">Real-time Audio Server Status Monitor</p>
+            
+            <div class="main-status" id="mainStatus">
+                <div class="status-dot connecting" id="statusDot"></div>
+                <span class="status-text connecting" id="statusText">Connecting...</span>
+            </div>
+
+            <div class="server-info">
+                <div class="info-badge">
+                    <span class="badge-icon">🌐</span>
+                    Server: <span id="serverAddress">212.132.120.102:12115</span>
+                </div>
+                <div class="info-badge">
+                    <span class="badge-icon">⏱️</span>
+                    Update Interval: <span>30s</span>
+                </div>
+                <div class="info-badge">
+                    <span class="badge-icon">🔗</span>
+                    Protocol: <span>WebSocket v4</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <!-- Ping Card -->
+            <div class="card" data-delay="0.1">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon purple">📡</div>
+                        <span>Latency</span>
+                    </div>
+                </div>
+                <div class="ping-display">
+                    <span class="ping-value good" id="pingValue">--</span>
+                    <span class="ping-unit">ms</span>
+                </div>
+                <div class="ping-wave" id="pingWave">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+
+            <!-- Uptime Card -->
+            <div class="card" data-delay="0.15">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon green">⏰</div>
+                        <span>Uptime</span>
+                    </div>
+                </div>
+                <div class="uptime-display" id="uptimeDisplay">
+                    <div class="uptime-block">
+                        <div class="uptime-value" id="uptimeDays">00</div>
+                        <div class="uptime-label">Days</div>
+                    </div>
+                    <div class="uptime-block">
+                        <div class="uptime-value" id="uptimeHours">00</div>
+                        <div class="uptime-label">Hours</div>
+                    </div>
+                    <div class="uptime-block">
+                        <div class="uptime-value" id="uptimeMinutes">00</div>
+                        <div class="uptime-label">Mins</div>
+                    </div>
+                    <div class="uptime-block">
+                        <div class="uptime-value" id="uptimeSeconds">00</div>
+                        <div class="uptime-label">Secs</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Players Card -->
+            <div class="card" data-delay="0.2">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon pink">👥</div>
+                        <span>Players</span>
+                    </div>
+                </div>
+                <div class="card-value" id="totalPlayers">--</div>
+                <div class="card-label">Total Connected Players</div>
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span class="progress-label">Active Players</span>
+                        <span class="progress-value" id="playingPlayersText">-- playing</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill pink" id="playersProgress" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CPU Card -->
+            <div class="card" data-delay="0.25">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon orange">🔥</div>
+                        <span>CPU Usage</span>
+                    </div>
+                </div>
+                <div class="cpu-cores">
+                    <span class="cpu-core-badge" id="cpuCores">-- Cores</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span class="progress-label">System Load</span>
+                        <span class="progress-value" id="systemLoadText">--%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill orange" id="systemLoadProgress" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span class="progress-label">Process Load</span>
+                        <span class="progress-value" id="processLoadText">--%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill purple" id="processLoadProgress" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Memory Card -->
+            <div class="card wide" data-delay="0.3">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon cyan">💾</div>
+                        <span>Memory Usage</span>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span class="progress-label">Used / Allocated</span>
+                        <span class="progress-value" id="memoryUsageText">-- / --</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill green" id="memoryProgress" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="memory-grid">
+                    <div class="memory-item">
+                        <div class="memory-value used" id="memoryUsed">--</div>
+                        <div class="memory-label">Used</div>
+                    </div>
+                    <div class="memory-item">
+                        <div class="memory-value free" id="memoryFree">--</div>
+                        <div class="memory-label">Free</div>
+                    </div>
+                    <div class="memory-item">
+                        <div class="memory-value allocated" id="memoryAllocated">--</div>
+                        <div class="memory-label">Allocated</div>
+                    </div>
+                    <div class="memory-item">
+                        <div class="memory-value reservable" id="memoryReservable">--</div>
+                        <div class="memory-label">Reservable</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Frame Stats Card -->
+            <div class="card" data-delay="0.35">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon blue">📊</div>
+                        <span>Frame Statistics</span>
+                    </div>
+                </div>
+                <div class="frame-stats-grid">
+                    <div class="frame-stat">
+                        <div class="frame-stat-value" id="framesSent">--</div>
+                        <div class="frame-stat-label">Sent</div>
+                    </div>
+                    <div class="frame-stat">
+                        <div class="frame-stat-value" id="framesNulled">--</div>
+                        <div class="frame-stat-label">Nulled</div>
+                    </div>
+                    <div class="frame-stat">
+                        <div class="frame-stat-value" id="framesDeficit">--</div>
+                        <div class="frame-stat-label">Deficit</div>
+                    </div>
+                    <div class="frame-stat">
+                        <div class="frame-stat-value" id="framesExpected">--</div>
+                        <div class="frame-stat-label">Expected</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Music Sources Section -->
+        <section class="sources-section">
+            <div class="sources-card">
+                <div class="sources-header">
+                    <div class="sources-title">
+                        <div class="sources-title-icon">🎵</div>
+                        <span>Supported Music Sources</span>
+                    </div>
+                    <span class="sources-count" id="sourcesCount">31 Sources</span>
+                </div>
+                <div class="sources-grid" id="sourcesGrid">
+                    <!-- Sources will be populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-links">
+                <a href="https://github.com/PerformanC/NodeLink" class="footer-link" target="_blank" rel="noopener noreferrer">
+                    <span>📦</span> GitHub
+                </a>
+                <a href="https://github.com/PerformanC/NodeLink/wiki" class="footer-link" target="_blank" rel="noopener noreferrer">
+                    <span>📚</span> Documentation
+                </a>
+                <a href="https://discord.gg/nodelink" class="footer-link" target="_blank" rel="noopener noreferrer">
+                    <span>💬</span> Discord
+                </a>
+            </div>
+            <p class="footer-text">Powered by NodeLink • Lavalink-compatible Audio Server</p>
+            <p class="last-update">Last updated: <span id="lastUpdate">--</span></p>
+        </footer>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
