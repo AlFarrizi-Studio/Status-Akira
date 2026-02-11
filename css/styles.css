@@ -292,6 +292,113 @@ button {
 }
 
 /* ============================================
+   Toast Notifications
+   ============================================ */
+.toast-container {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    pointer-events: none;
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md) var(--space-lg);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    backdrop-filter: blur(20px);
+    box-shadow: var(--shadow-lg);
+    transform: translateX(400px);
+    opacity: 0;
+    transition: all var(--transition-bounce);
+    pointer-events: auto;
+    max-width: 380px;
+    min-width: 300px;
+}
+
+.toast.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.toast.hide {
+    transform: translateX(400px);
+    opacity: 0;
+}
+
+.toast-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.toast-success {
+    border-left: 3px solid var(--success);
+}
+
+.toast-success .toast-icon {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--success);
+}
+
+.toast-error {
+    border-left: 3px solid var(--danger);
+}
+
+.toast-error .toast-icon {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--danger);
+}
+
+.toast-info {
+    border-left: 3px solid var(--accent-primary);
+}
+
+.toast-info .toast-icon {
+    background: rgba(99, 102, 241, 0.2);
+    color: var(--accent-primary);
+}
+
+.toast-warning {
+    border-left: 3px solid var(--warning);
+}
+
+.toast-warning .toast-icon {
+    background: rgba(245, 158, 11, 0.2);
+    color: var(--warning);
+}
+
+.toast-content {
+    flex: 1;
+}
+
+.toast-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.toast-message {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+/* ============================================
    Container
    ============================================ */
 .container {
@@ -351,6 +458,11 @@ button {
         transparent
     );
     animation: logoShine 3s ease-in-out infinite;
+}
+
+.logo-icon {
+    position: relative;
+    z-index: 1;
 }
 
 @keyframes logoPulse {
@@ -618,6 +730,18 @@ button {
 .card-icon.blue { background: rgba(59, 130, 246, 0.15); }
 .card-icon.cyan { background: rgba(6, 182, 212, 0.15); }
 .card-icon.red { background: rgba(239, 68, 68, 0.15); }
+
+.card-badge {
+    padding: 4px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
 
 .card-value {
     font-size: 38px;
@@ -1102,10 +1226,16 @@ button {
     display: none;
 }
 
-/* Fallback when image fails */
-.source-icon:empty::after {
-    content: '🎵';
+/* Fallback Icon */
+.source-icon-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
 }
 
 .source-name {
@@ -1451,6 +1581,28 @@ button {
     .footer-link {
         justify-content: center;
     }
+
+    /* Toast Responsive */
+    .toast-container {
+        top: auto;
+        bottom: 20px;
+        right: 10px;
+        left: 10px;
+    }
+
+    .toast {
+        max-width: none;
+        min-width: auto;
+        transform: translateY(150px);
+    }
+
+    .toast.show {
+        transform: translateY(0);
+    }
+
+    .toast.hide {
+        transform: translateY(150px);
+    }
 }
 
 /* Mobile Small */
@@ -1567,6 +1719,24 @@ button {
     .memory-label {
         font-size: 10px;
     }
+
+    .toast {
+        padding: var(--space-sm) var(--space-md);
+    }
+
+    .toast-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+    }
+
+    .toast-title {
+        font-size: 13px;
+    }
+
+    .toast-message {
+        font-size: 12px;
+    }
 }
 
 /* Reduced Motion */
@@ -1590,7 +1760,8 @@ button {
 @media print {
     .bg-animation,
     .orb,
-    .connection-bar {
+    .connection-bar,
+    .toast-container {
         display: none;
     }
 
