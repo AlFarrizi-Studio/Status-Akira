@@ -14,7 +14,7 @@
     // ============================================
     const CONFIG = {
         server: {
-            host: 'understand-nec-our-pushed.trycloudflare.com',
+            host: 'lips-flash-advertisement-telecom.trycloudflare.com',
             password: 'AkiraMusic',
             secure: true
         },
@@ -710,3 +710,4 @@
     };
 
 })();
+
