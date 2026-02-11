@@ -19,7 +19,7 @@ class NodeLinkMonitor {
             { name: 'YouTube', color: '#FF0000', icon: 'YT' },
             { name: 'YouTube Music', color: '#FF0000', icon: 'YM' },
             { name: 'SoundCloud', color: '#FF5500', icon: 'SC' },
-            { name: 'Unified', color: '#8B5CF6', icon: 'UN' },
+            { name: 'URL Stream', color: '#8B5CF6', icon: 'UN' },
             { name: 'Spotify', color: '#1DB954', icon: 'SP' },
             { name: 'Apple Music', color: '#FA233B', icon: 'AM' },
             { name: 'Deezer', color: '#FEAA2D', icon: 'DZ' },
@@ -458,3 +458,4 @@ document.addEventListener('visibilitychange', () => {
         window.nodelink.checkServerStatus();
     }
 });
+
