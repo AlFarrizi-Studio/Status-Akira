@@ -10,21 +10,19 @@
     'use strict';
 
     // ============================================
-    // Configuration
+    // Configuration - GANTI URL TUNNEL DI SINI
     // ============================================
     const CONFIG = {
         server: {
             host: 'lips-flash-advertisement-telecom.trycloudflare.com',
             password: 'AkiraMusic'
         },
-        updateInterval: 3000, // Poll setiap 3 detik
+        updateInterval: 3000,
         iconsPath: 'icons/'
     };
 
-    // Build URLs
     const URLS = {
         stats: `https://${CONFIG.server.host}/v4/stats`,
-        info: `https://${CONFIG.server.host}/v4/info`,
         version: `https://${CONFIG.server.host}/version`
     };
 
@@ -66,7 +64,7 @@
     ];
 
     // ============================================
-    // State Management
+    // State
     // ============================================
     const state = {
         isConnected: false,
@@ -74,13 +72,12 @@
         pingLatency: 0,
         uptimeMs: 0,
         uptimeInterval: null,
-        lastStats: null,
         failCount: 0,
         maxFails: 5
     };
 
     // ============================================
-    // DOM Elements Cache
+    // DOM Elements
     // ============================================
     const elements = {};
     const elementIds = [
@@ -104,9 +101,8 @@
     }
 
     // ============================================
-    // Utility Functions
+    // Utilities
     // ============================================
-
     function formatBytes(bytes) {
         if (!bytes || bytes === 0) return '0 B';
         const k = 1024;
@@ -118,16 +114,11 @@
     function formatUptime(ms) {
         if (!ms || ms < 0) ms = 0;
         const totalSeconds = Math.floor(ms / 1000);
-        const days = Math.floor(totalSeconds / 86400);
-        const hours = Math.floor((totalSeconds % 86400) / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const seconds = totalSeconds % 60;
-
         return {
-            days: String(days).padStart(2, '0'),
-            hours: String(hours).padStart(2, '0'),
-            minutes: String(minutes).padStart(2, '0'),
-            seconds: String(seconds).padStart(2, '0')
+            days: String(Math.floor(totalSeconds / 86400)).padStart(2, '0'),
+            hours: String(Math.floor((totalSeconds % 86400) / 3600)).padStart(2, '0'),
+            minutes: String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0'),
+            seconds: String(totalSeconds % 60).padStart(2, '0')
         };
     }
 
@@ -136,42 +127,22 @@
         return num.toLocaleString();
     }
 
-    function setText(elementId, text) {
-        if (elements[elementId]) {
-            elements[elementId].textContent = text;
-        }
+    function setText(id, text) {
+        if (elements[id]) elements[id].textContent = text;
     }
 
-    function setStyle(elementId, property, value) {
-        if (elements[elementId]) {
-            elements[elementId].style[property] = value;
-        }
+    function setStyle(id, prop, val) {
+        if (elements[id]) elements[id].style[prop] = val;
     }
 
     function showToast(message, type = 'info', duration = 4000) {
         if (!elements.toastContainer) return;
-
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
-        
-        const icons = {
-            success: '✓',
-            error: '✕',
-            warning: '⚠',
-            info: 'ℹ'
-        };
-
-        toast.innerHTML = `
-            <span class="toast-icon">${icons[type] || icons.info}</span>
-            <span class="toast-message">${message}</span>
-        `;
-
+        const icons = { success: '✓', error: '✕', warning: '⚠', info: 'ℹ' };
+        toast.innerHTML = `<span class="toast-icon">${icons[type] || 'ℹ'}</span><span class="toast-message">${message}</span>`;
         elements.toastContainer.appendChild(toast);
-
-        requestAnimationFrame(() => {
-            toast.classList.add('show');
-        });
-
+        requestAnimationFrame(() => toast.classList.add('show'));
         setTimeout(() => {
             toast.classList.remove('show');
             setTimeout(() => toast.remove(), 300);
@@ -179,255 +150,161 @@
     }
 
     // ============================================
-    // UI Update Functions
+    // UI Updates
     // ============================================
-
     function initMusicSources() {
         if (!elements.sourcesGrid) return;
-
         const fragment = document.createDocumentFragment();
-
-        MUSIC_SOURCES.forEach((source, index) => {
+        MUSIC_SOURCES.forEach((source, i) => {
             const item = document.createElement('div');
             item.className = 'source-item';
-            item.setAttribute('data-source', source.name);
-            item.style.animationDelay = `${0.02 * index}s`;
-
+            item.style.animationDelay = `${0.02 * i}s`;
             item.innerHTML = `
                 <div class="source-icon" style="background: ${source.color}15;">
-                    <img 
-                        src="${CONFIG.iconsPath}${source.icon}" 
-                        alt="${source.name}"
-                        class="source-icon-img"
-                        loading="lazy"
-                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                    >
+                    <img src="${CONFIG.iconsPath}${source.icon}" alt="${source.name}" class="source-icon-img" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                     <span class="source-icon-fallback" style="display:none;">${source.fallback}</span>
                 </div>
                 <span class="source-name">${source.name}</span>
             `;
-
             fragment.appendChild(item);
         });
-
         elements.sourcesGrid.innerHTML = '';
         elements.sourcesGrid.appendChild(fragment);
-
-        if (elements.sourcesCount) {
-            elements.sourcesCount.textContent = `${MUSIC_SOURCES.length} Sources`;
-        }
+        if (elements.sourcesCount) elements.sourcesCount.textContent = `${MUSIC_SOURCES.length} Sources`;
     }
 
     function updateStatus(status) {
-        const statusClasses = ['online', 'offline', 'connecting'];
-        const statusConfig = {
-            online: { text: 'Operational' },
-            offline: { text: 'Offline' },
-            connecting: { text: 'Connecting...' }
-        };
-
-        [elements.connectionBar, elements.statusDot, elements.statusText].forEach(el => {
-            if (el) {
-                statusClasses.forEach(cls => el.classList.remove(cls));
-                el.classList.add(status);
-            }
+        ['online', 'offline', 'connecting'].forEach(cls => {
+            [elements.connectionBar, elements.statusDot, elements.statusText].forEach(el => {
+                if (el) el.classList.remove(cls);
+            });
         });
-
-        setText('statusText', statusConfig[status]?.text || status);
+        [elements.connectionBar, elements.statusDot, elements.statusText].forEach(el => {
+            if (el) el.classList.add(status);
+        });
+        const texts = { online: 'Operational', offline: 'Offline', connecting: 'Connecting...' };
+        setText('statusText', texts[status] || status);
     }
 
     function updateConnectionMode(mode) {
-        const modeTexts = {
-            polling: '🔄 HTTP Polling',
-            offline: '🔴 Offline',
-            connecting: '🟡 Connecting'
-        };
-        setText('connectionModeText', modeTexts[mode] || mode);
+        const modes = { polling: '🟢 Live', offline: '🔴 Offline', connecting: '🟡 Connecting' };
+        setText('connectionModeText', modes[mode] || mode);
     }
 
     function updatePing(ping) {
-        if (!elements.pingValue) return;
-
         const pingNum = parseInt(ping) || 0;
         state.pingLatency = pingNum;
         setText('pingValue', pingNum);
-
-        elements.pingValue.className = 'ping-value';
         
-        let status = 'Good';
-        let colorClass = 'good';
-        
-        if (pingNum < 100) {
-            status = 'Excellent';
-            colorClass = 'good';
-        } else if (pingNum < 300) {
-            status = 'Good';
-            colorClass = 'good';
-        } else if (pingNum < 500) {
-            status = 'Fair';
-            colorClass = 'medium';
-        } else {
-            status = 'Slow';
-            colorClass = 'bad';
-        }
-
-        elements.pingValue.classList.add(colorClass);
-        setText('pingStatus', status);
-
-        if (elements.pingWave) {
-            const colors = {
-                good: '#10b981',
-                medium: '#f59e0b',
-                bad: '#ef4444'
-            };
-            const color = colors[colorClass];
-            elements.pingWave.querySelectorAll('span').forEach(span => {
-                span.style.background = color;
-            });
+        if (elements.pingValue) {
+            elements.pingValue.className = 'ping-value';
+            let colorClass = 'good', status = 'Excellent';
+            if (pingNum >= 500) { colorClass = 'bad'; status = 'Slow'; }
+            else if (pingNum >= 300) { colorClass = 'medium'; status = 'Fair'; }
+            else if (pingNum >= 100) { colorClass = 'good'; status = 'Good'; }
+            elements.pingValue.classList.add(colorClass);
+            setText('pingStatus', status);
+            
+            if (elements.pingWave) {
+                const colors = { good: '#10b981', medium: '#f59e0b', bad: '#ef4444' };
+                elements.pingWave.querySelectorAll('span').forEach(s => s.style.background = colors[colorClass]);
+            }
         }
     }
 
     function updateUptimeDisplay() {
-        const uptime = formatUptime(state.uptimeMs);
-        setText('uptimeDays', uptime.days);
-        setText('uptimeHours', uptime.hours);
-        setText('uptimeMinutes', uptime.minutes);
-        setText('uptimeSeconds', uptime.seconds);
+        const u = formatUptime(state.uptimeMs);
+        setText('uptimeDays', u.days);
+        setText('uptimeHours', u.hours);
+        setText('uptimeMinutes', u.minutes);
+        setText('uptimeSeconds', u.seconds);
         state.uptimeMs += 1000;
     }
 
     function resetStats() {
         const defaults = {
-            pingValue: '--',
-            pingStatus: '--',
-            totalPlayers: '--',
-            playingPlayersText: '-- playing',
-            cpuCores: '-- Cores',
-            systemLoadText: '--%',
-            processLoadText: '--%',
-            memoryUsageText: '-- / --',
-            memoryUsed: '--',
-            memoryFree: '--',
-            memoryAllocated: '--',
-            memoryReservable: '--',
-            framesSent: '--',
-            framesNulled: '--',
-            framesDeficit: '--',
-            framesExpected: '--',
-            uptimeDays: '00',
-            uptimeHours: '00',
-            uptimeMinutes: '00',
-            uptimeSeconds: '00'
+            pingValue: '--', pingStatus: '--', totalPlayers: '--',
+            playingPlayersText: '-- playing', cpuCores: '-- Cores',
+            systemLoadText: '--%', processLoadText: '--%',
+            memoryUsageText: '-- / --', memoryUsed: '--', memoryFree: '--',
+            memoryAllocated: '--', memoryReservable: '--',
+            framesSent: '--', framesNulled: '--', framesDeficit: '--', framesExpected: '--',
+            uptimeDays: '00', uptimeHours: '00', uptimeMinutes: '00', uptimeSeconds: '00'
         };
-
-        Object.entries(defaults).forEach(([key, value]) => setText(key, value));
-
-        ['playersProgress', 'systemLoadProgress', 'processLoadProgress', 'memoryProgress'].forEach(id => {
-            setStyle(id, 'width', '0%');
-        });
-
-        if (state.uptimeInterval) {
-            clearInterval(state.uptimeInterval);
-            state.uptimeInterval = null;
-        }
+        Object.entries(defaults).forEach(([k, v]) => setText(k, v));
+        ['playersProgress', 'systemLoadProgress', 'processLoadProgress', 'memoryProgress'].forEach(id => setStyle(id, 'width', '0%'));
+        if (state.uptimeInterval) { clearInterval(state.uptimeInterval); state.uptimeInterval = null; }
     }
 
     function updateStats(data) {
         if (!data) return;
-
-        state.lastStats = data;
-
-        if (data.players !== undefined) {
-            setText('totalPlayers', formatNumber(data.players));
-        }
-
+        
+        if (data.players !== undefined) setText('totalPlayers', formatNumber(data.players));
         if (data.playingPlayers !== undefined) {
             setText('playingPlayersText', `${formatNumber(data.playingPlayers)} playing`);
-            const percentage = data.players > 0 ? (data.playingPlayers / Math.max(data.players, 1)) * 100 : 0;
-            setStyle('playersProgress', 'width', `${Math.min(percentage, 100)}%`);
+            const pct = data.players > 0 ? (data.playingPlayers / data.players) * 100 : 0;
+            setStyle('playersProgress', 'width', `${Math.min(pct, 100)}%`);
         }
-
+        
         if (data.uptime !== undefined) {
             state.uptimeMs = data.uptime;
             updateUptimeDisplay();
-
-            if (!state.uptimeInterval) {
-                state.uptimeInterval = setInterval(updateUptimeDisplay, 1000);
-            }
+            if (!state.uptimeInterval) state.uptimeInterval = setInterval(updateUptimeDisplay, 1000);
         }
-
+        
         if (data.memory) {
             const { used = 0, free = 0, allocated = 0, reservable = 0 } = data.memory;
-
             setText('memoryUsed', formatBytes(used));
             setText('memoryFree', formatBytes(free));
             setText('memoryAllocated', formatBytes(allocated));
             setText('memoryReservable', formatBytes(reservable));
             setText('memoryUsageText', `${formatBytes(used)} / ${formatBytes(allocated)}`);
-
-            const memoryPercentage = allocated > 0 ? (used / allocated) * 100 : 0;
-            setStyle('memoryProgress', 'width', `${Math.min(memoryPercentage, 100)}%`);
+            const memPct = allocated > 0 ? (used / allocated) * 100 : 0;
+            setStyle('memoryProgress', 'width', `${Math.min(memPct, 100)}%`);
         }
-
+        
         if (data.cpu) {
             setText('cpuCores', `${data.cpu.cores || '--'} Cores`);
-
-            const systemLoad = (data.cpu.systemLoad || 0) * 100;
-            const lavalinkLoad = (data.cpu.lavalinkLoad || data.cpu.processLoad || 0) * 100;
-
-            setText('systemLoadText', `${systemLoad.toFixed(1)}%`);
-            setStyle('systemLoadProgress', 'width', `${Math.min(systemLoad, 100)}%`);
-
-            setText('processLoadText', `${lavalinkLoad.toFixed(1)}%`);
-            setStyle('processLoadProgress', 'width', `${Math.min(lavalinkLoad, 100)}%`);
+            const sysLoad = (data.cpu.systemLoad || 0) * 100;
+            const procLoad = (data.cpu.lavalinkLoad || data.cpu.processLoad || 0) * 100;
+            setText('systemLoadText', `${sysLoad.toFixed(1)}%`);
+            setStyle('systemLoadProgress', 'width', `${Math.min(sysLoad, 100)}%`);
+            setText('processLoadText', `${procLoad.toFixed(1)}%`);
+            setStyle('processLoadProgress', 'width', `${Math.min(procLoad, 100)}%`);
         }
-
+        
         if (data.frameStats) {
             setText('framesSent', formatNumber(data.frameStats.sent || 0));
             setText('framesNulled', formatNumber(data.frameStats.nulled || 0));
             setText('framesDeficit', formatNumber(data.frameStats.deficit || 0));
             setText('framesExpected', formatNumber(data.frameStats.expected || 0));
         }
-
-        setText('lastUpdate', new Date().toLocaleString('id-ID', {
-            day: '2-digit',
-            month: '2-digit', 
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        }));
+        
+        setText('lastUpdate', new Date().toLocaleString('id-ID'));
     }
 
     // ============================================
-    // HTTP Polling Functions
+    // HTTP Polling
     // ============================================
-
     async function fetchStats() {
-        const startTime = performance.now();
-        
+        const start = performance.now();
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-            const response = await fetch(URLS.stats, {
-                method: 'GET',
-                headers: {
-                    'Authorization': CONFIG.server.password
-                },
-                signal: controller.signal
-            });
-
-            clearTimeout(timeoutId);
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-
-            const data = await response.json();
-            const latency = Math.round(performance.now() - startTime);
+            const ctrl = new AbortController();
+            const timeout = setTimeout(() => ctrl.abort(), 10000);
             
-            // Success!
+            const res = await fetch(URLS.stats, {
+                method: 'GET',
+                headers: { 'Authorization': CONFIG.server.password },
+                signal: ctrl.signal
+            });
+            
+            clearTimeout(timeout);
+            
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            
+            const data = await res.json();
+            const latency = Math.round(performance.now() - start);
+            
             state.failCount = 0;
             state.isConnected = true;
             
@@ -437,63 +314,45 @@
             updateStats(data);
             
             return data;
-        } catch (error) {
+        } catch (err) {
             state.failCount++;
-            console.error(`❌ Fetch failed (${state.failCount}/${state.maxFails}):`, error.message);
-            
+            console.error(`❌ Fetch failed (${state.failCount}/${state.maxFails}):`, err.message);
             if (state.failCount >= state.maxFails) {
                 state.isConnected = false;
                 updateStatus('offline');
                 updateConnectionMode('offline');
             }
-            
-            throw error;
+            throw err;
         }
     }
 
     async function checkServer() {
-        console.log('🔍 Checking server availability...');
-        
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-            const response = await fetch(URLS.version, {
+            const ctrl = new AbortController();
+            const timeout = setTimeout(() => ctrl.abort(), 10000);
+            const res = await fetch(URLS.version, {
                 method: 'GET',
-                headers: {
-                    'Authorization': CONFIG.server.password
-                },
-                signal: controller.signal
+                headers: { 'Authorization': CONFIG.server.password },
+                signal: ctrl.signal
             });
-
-            clearTimeout(timeoutId);
-
-            if (response.ok) {
-                const version = await response.text();
-                console.log('✅ Server online! Version:', version);
+            clearTimeout(timeout);
+            if (res.ok) {
+                console.log('✅ Server online!');
                 return true;
-            } else {
-                console.log('❌ Server returned:', response.status);
-                return false;
             }
-        } catch (error) {
-            console.log('❌ Server check failed:', error.message);
+            console.log('❌ Server returned:', res.status);
+            return false;
+        } catch (err) {
+            console.log('❌ Server check failed:', err.message);
             return false;
         }
     }
 
     function startPolling() {
         if (state.pollInterval) return;
-
-        console.log('📡 Starting HTTP polling...');
-        
-        // Initial fetch
+        console.log('📡 Starting polling (every ' + CONFIG.updateInterval + 'ms)');
         fetchStats().catch(() => {});
-
-        // Start interval
-        state.pollInterval = setInterval(() => {
-            fetchStats().catch(() => {});
-        }, CONFIG.updateInterval);
+        state.pollInterval = setInterval(() => fetchStats().catch(() => {}), CONFIG.updateInterval);
     }
 
     function stopPolling() {
@@ -506,72 +365,36 @@
     // ============================================
     // Event Handlers
     // ============================================
-
     async function handleRefresh() {
-        console.log('🔄 Manual refresh');
-        
+        console.log('🔄 Refreshing...');
         stopPolling();
         resetStats();
         state.failCount = 0;
-        
         updateStatus('connecting');
         updateConnectionMode('connecting');
         showToast('Refreshing...', 'info');
         
-        setTimeout(async () => {
-            const available = await checkServer();
-            
-            if (available) {
-                showToast('Server online!', 'success');
-                startPolling();
-            } else {
-                showToast('Server not reachable. Check tunnel URL.', 'error');
-                updateStatus('offline');
-                updateConnectionMode('offline');
-            }
-        }, 500);
-    }
-
-    function handleVisibilityChange() {
-        if (document.visibilityState === 'visible') {
-            if (!state.pollInterval) {
-                console.log('Page visible, resuming polling...');
-                startPolling();
-            }
+        const available = await checkServer();
+        if (available) {
+            showToast('Connected!', 'success');
+            startPolling();
         } else {
-            // Optional: stop polling when tab hidden to save resources
-            // stopPolling();
+            showToast('Server not reachable', 'error');
+            updateStatus('offline');
+            updateConnectionMode('offline');
         }
     }
 
-    function handleOnline() {
-        console.log('🌐 Network restored');
-        showToast('Network restored', 'success');
-        state.failCount = 0;
-        startPolling();
-    }
-
-    function handleOffline() {
-        console.log('📵 Network lost');
-        showToast('Network lost', 'error');
-        updateStatus('offline');
-        updateConnectionMode('offline');
-        stopPolling();
-    }
-
     // ============================================
-    // Initialization
+    // Init
     // ============================================
-
     async function init() {
-        console.log('🎵 Akira Status Page v2.2.0 (HTTP Polling Mode)');
+        console.log('🎵 Akira Status Page v2.2.0');
         console.log('📍 Server:', CONFIG.server.host);
-        console.log('📊 Stats URL:', URLS.stats);
-        console.log('⏱️ Poll Interval:', CONFIG.updateInterval + 'ms');
+        console.log('📊 Using HTTP Polling (WebSocket tidak support auth headers di browser)');
 
         cacheElements();
         initMusicSources();
-
         setText('serverAddress', CONFIG.server.host);
         setText('updateInterval', `${CONFIG.updateInterval / 1000}s`);
 
@@ -582,57 +405,41 @@
             });
         }
 
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-        window.addEventListener('online', handleOnline);
-        window.addEventListener('offline', handleOffline);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && !state.pollInterval) startPolling();
+        });
+        window.addEventListener('online', () => { state.failCount = 0; startPolling(); });
+        window.addEventListener('offline', () => { updateStatus('offline'); stopPolling(); });
 
-        // Check server and start polling
         updateStatus('connecting');
         updateConnectionMode('connecting');
 
         const available = await checkServer();
-        
         if (available) {
             showToast('Connected to NodeLink!', 'success');
             startPolling();
         } else {
             updateStatus('offline');
             updateConnectionMode('offline');
-            showToast('Server not reachable. Check if tunnel is active.', 'error');
+            showToast('Server not reachable. Check tunnel URL.', 'error');
             
-            // Retry every 30 seconds
+            // Auto retry every 30s
             setInterval(async () => {
                 if (!state.isConnected) {
-                    console.log('🔄 Retrying connection...');
-                    const isAvailable = await checkServer();
-                    if (isAvailable) {
-                        showToast('Server back online!', 'success');
-                        startPolling();
-                    }
+                    const ok = await checkServer();
+                    if (ok) { showToast('Reconnected!', 'success'); startPolling(); }
                 }
             }, 30000);
         }
 
-        console.log('✅ Initialized');
+        console.log('✅ Ready!');
     }
 
-    // Start
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
     }
 
-    // Debug
-    window.AkiraStatus = {
-        state,
-        CONFIG,
-        URLS,
-        refresh: handleRefresh,
-        fetchStats,
-        checkServer,
-        startPolling,
-        stopPolling
-    };
-
+    window.AkiraStatus = { state, CONFIG, URLS, refresh: handleRefresh, fetchStats, checkServer };
 })();
