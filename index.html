@@ -37,7 +37,7 @@
             </div>
         </header>
 
-        <!-- Server Info Banner (Updated) -->
+        <!-- Server Info Banner -->
         <section class="server-banner">
             <div class="server-details">
                 <div class="server-item">
@@ -63,28 +63,20 @@
             </div>
         </section>
 
-        <!-- Now Playing Section (New) -->
+        <!-- Now Playing Section -->
         <section class="now-playing-section">
             <div class="card now-playing-card">
                 <div class="card-header">
                     <div class="card-icon playing">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 18V5l12-2v13"/>
-                            <circle cx="6" cy="18" r="3"/>
-                            <circle cx="18" cy="16" r="3"/>
-                        </svg>
+                        <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f3b5.png" alt="🎵" class="emoji-icon">
                     </div>
                     <h2>Now Playing</h2>
                     <div class="player-count" id="playerCountBadge">0 Active</div>
                 </div>
                 <div class="card-body">
                     <div class="tracks-container" id="tracksContainer">
-                        <!-- Dynamic content -->
                         <div class="empty-state">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"/>
-                                <path d="M8 12h8M12 8v8"/>
-                            </svg>
+                            <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f615.png" alt="😕" class="emoji-big">
                             <span>No track playing</span>
                         </div>
                     </div>
@@ -98,12 +90,7 @@
             <div class="card status-card">
                 <div class="card-header">
                     <div class="card-icon server">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="2" y="2" width="20" height="8" rx="2"/>
-                            <rect x="2" y="14" width="20" height="8" rx="2"/>
-                            <circle cx="6" cy="6" r="1" fill="currentColor"/>
-                            <circle cx="6" cy="18" r="1" fill="currentColor"/>
-                        </svg>
+                        <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f5a5.png" alt="🖥️" class="emoji-icon">
                     </div>
                     <h2>Server Status</h2>
                 </div>
@@ -127,9 +114,7 @@
             <div class="card network-card">
                 <div class="card-header">
                     <div class="card-icon network">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-                        </svg>
+                        <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f4ca.png" alt="📊" class="emoji-icon">
                     </div>
                     <h2>Network Latency</h2>
                 </div>
@@ -152,11 +137,7 @@
             <div class="card memory-card">
                 <div class="card-header">
                     <div class="card-icon memory">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="4" y="4" width="16" height="16" rx="2"/>
-                            <rect x="8" y="8" width="8" height="8"/>
-                            <path d="M8 2v2M16 2v2M8 20v2M16 20v2M2 8h2M2 16h2M20 8h2M20 16h2"/>
-                        </svg>
+                        <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f4be.png" alt="💾" class="emoji-icon">
                     </div>
                     <h2>Memory Usage</h2>
                 </div>
@@ -191,11 +172,7 @@
             <div class="card cpu-card">
                 <div class="card-header">
                     <div class="card-icon cpu">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="4" y="4" width="16" height="16" rx="2"/>
-                            <rect x="9" y="9" width="6" height="6"/>
-                            <path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/>
-                        </svg>
+                        <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/26a1.png" alt="⚡" class="emoji-icon">
                     </div>
                     <h2>CPU Load</h2>
                 </div>
@@ -224,17 +201,12 @@
             </div>
         </section>
 
-        <!-- Players Stats Mini -->
+        <!-- Players Stats -->
         <section class="players-section">
             <div class="card players-card">
                 <div class="card-header">
                     <div class="card-icon players">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                            <circle cx="9" cy="7" r="4"/>
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                        </svg>
+                        <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f3a4.png" alt="🎤" class="emoji-icon">
                     </div>
                     <h2>Player Statistics</h2>
                 </div>
@@ -281,18 +253,32 @@
                 </div>
             </div>
 
-            <div class="card features-card">
+            <div class="card sources-card">
                 <div class="card-header">
                     <div class="card-icon features">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
-                        </svg>
+                        <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f4e5.png" alt="📥" class="emoji-icon">
                     </div>
-                    <h2>Source Managers</h2>
-                    <div class="source-count" id="sourceCount">0 sources</div>
+                    <h2>Sources</h2>
+                    <div class="source-count" id="sourceCount">0</div>
                 </div>
                 <div class="card-body">
                     <div class="sources-container" id="sourcesContainer">
+                        <!-- Dynamic content -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- RESTORED: Music Filters -->
+            <div class="card filters-card">
+                <div class="card-header">
+                    <div class="card-icon filters">
+                        <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f39b.png" alt="🎛️" class="emoji-icon">
+                    </div>
+                    <h2>Audio Filters</h2>
+                    <div class="filter-count" id="filterCount">0</div>
+                </div>
+                <div class="card-body">
+                    <div class="filters-container" id="filtersContainer">
                         <!-- Dynamic content -->
                     </div>
                 </div>
@@ -304,9 +290,9 @@
             <div class="footer-content">
                 <span>Al Farrizi NodeLink Monitor</span>
                 <span class="separator">|</span>
-                <span>Auto-refresh: 5s</span>
+                <span>Refresh: 1s</span>
                 <span class="separator">|</span>
-                <span class="mono" id="refreshCount">Next: 5s</span>
+                <span class="mono" id="refreshCount">Next: 1s</span>
             </div>
         </footer>
     </div>
