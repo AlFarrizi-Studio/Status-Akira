@@ -218,17 +218,21 @@ function renderEndpoints(data) {
 }
 
 function renderFeatures(data) {
-    const { features } = data.information;
-    
+    // FIX: Cek apakah data.information ada, jika tidak buat dummy object
+    const info = data.information || {};
+    const features = info.features || { source_managers: [], filters: [] };
+
     // Sources
-    elements.sourceCount.textContent = features.source_managers.length;
-    elements.sourcesContainer.innerHTML = features.source_managers
+    const sourceManagers = features.source_managers || [];
+    elements.sourceCount.textContent = sourceManagers.length;
+    elements.sourcesContainer.innerHTML = sourceManagers
         .map(source => `<span class="source-tag">${source}</span>`)
         .join('');
         
     // Filters
-    elements.filterCount.textContent = features.filters.length;
-    elements.filtersContainer.innerHTML = features.filters
+    const audioFilters = features.filters || [];
+    elements.filterCount.textContent = audioFilters.length;
+    elements.filtersContainer.innerHTML = audioFilters
         .map(filter => `<span class="filter-tag">${filter}</span>`)
         .join('');
 }
