@@ -11,7 +11,7 @@ let countdownTimer = null;
 let countdownValue = 5;
 let retryCount = 0;
 
-// DOM Elements Cache
+// DOM Elements Cache (Sama seperti sebelumnya)
 const elements = {
     lastUpdate: document.getElementById('lastUpdate'),
     versionDisplay: document.getElementById('versionDisplay'),
@@ -54,11 +54,17 @@ function formatDuration(ms) {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
 
+function parsePercentString(str) {
+    if (typeof str === 'number') return str;
+    if (!str) return 0;
+    return parseFloat(str.toString().replace('%', '')) || 0;
+}
+
 function getStatusClass(status) {
     const s = String(status).toLowerCase();
-    if (['online', 'healthy', 'good', 'perfect', 'normal'].includes(s)) return 'online';
-    if (['warning', 'average', 'poor'].includes(s)) return 'warning';
-    if (['error', 'critical', 'bad', 'unhealthy'].includes(s)) return 'critical';
+    if (['online', 'healthy', 'good', 'perfect', 'normal', 'playing'].includes(s)) return 'online';
+    if (['warning', 'average', 'poor', 'idle'].includes(s)) return 'warning';
+    if (['error', 'critical', 'bad', 'unhealthy', 'paused'].includes(s)) return 'critical';
     return 'online';
 }
 
@@ -112,18 +118,52 @@ function updateCountdownDisplay() {
 }
 
 // ==========================================
+// DATA TRANSFORMER (COMPATIBILITY LAYER)
+// ==========================================
+function transformData(input) {
+    // Jika format sudah sesuai (Enterprise), kembalikan apa adanya
+    if (input.performance && input.audio_stats) return input;
+
+    // Jika format PC Hybrid (Simplified), transform ke Enterprise
+    const health = input.system_health || {};
+    const engine = input.server_engine || {};
+    
+    return {
+        server: {
+            version: { semver: engine.version || '--' },
+            capabilities: { sources: engine.sources || [], filters: [] }
+        },
+        performance: {
+            health: { status: health.cpu_load ? 'Online' : 'Unknown' },
+            uptime: { formatted: health.uptime || '--' },
+            memory: {
+                usage_percent: parsePercentString(health.cpu_load), // Fallback visual
+                used: { formatted: health.memory_used || '--' },
+                free: { formatted: 'N/A' }
+            },
+            cpu: {
+                system_load: parsePercentString(health.cpu_load),
+                lavalink_load: 0,
+                cores: 0
+            }
+        },
+        response_time_ms: input.response_time_ms || 0,
+        now_playing: input.now_playing, // Biarkan logic render yang handle
+        audio_stats: { players: { total: 0, playing: 0, idle: 0 } }, // Mock
+        network: null // Skip render endpoints
+    };
+}
+
+// ==========================================
 // RENDER FUNCTIONS
 // ==========================================
 
 function renderVersion(data) {
-    if (!data || !data.server) return;
     const version = data.server?.version?.semver || '--';
     if(elements.versionDisplay) elements.versionDisplay.textContent = version;
 }
 
 function renderServerStatus(data) {
-    if (!data) return;
-    
     const health = data.performance?.health || { status: 'Unknown' };
     const uptime = data.performance?.uptime || { formatted: '--' };
 
@@ -133,8 +173,6 @@ function renderServerStatus(data) {
 }
 
 function renderNetworkData(data) {
-    if (!data) return;
-    
     const latency = data.response_time_ms || 0;
     
     if(elements.latencyOverall) elements.latencyOverall.textContent = latency;
@@ -151,7 +189,8 @@ function renderMemoryData(data) {
     if (!data || !data.performance || !data.performance.memory) return;
 
     const mem = data.performance.memory;
-    const percentRaw = parseFloat(mem.usage_percent);
+    // Handle both raw number or string percentage
+    const percentRaw = typeof mem.usage_percent === 'number' ? mem.usage_percent : parsePercentString(mem.usage_percent);
     const percent = isNaN(percentRaw) ? 0 : percentRaw;
 
     if(elements.memoryPercent) elements.memoryPercent.textContent = percent.toFixed(1);
@@ -171,8 +210,8 @@ function renderCPUData(data) {
     if (!data || !data.performance || !data.performance.cpu) return;
 
     const cpu = data.performance.cpu;
-    const systemLoad = parseFloat(cpu.system_load) || 0;
-    const lavalinkLoad = parseFloat(cpu.lavalink_load) || 0;
+    const systemLoad = parsePercentString(cpu.system_load);
+    const lavalinkLoad = parsePercentString(cpu.lavalink_load);
 
     if(elements.cpuLavalink) elements.cpuLavalink.textContent = lavalinkLoad.toFixed(2) + '%';
     if(elements.cpuLavalinkBar) {
@@ -192,7 +231,6 @@ function renderCPUData(data) {
 
 function renderPlayersData(data) {
     if (!data || !data.audio_stats || !data.audio_stats.players) return;
-
     const players = data.audio_stats.players;
 
     if(elements.playersTotal) elements.playersTotal.textContent = players.total;
@@ -206,9 +244,8 @@ function renderPlayersData(data) {
 function renderEndpoints(data) {
     if (!elements.endpointsGrid) return;
     
-    // Jika tidak ada data endpoints (seperti di JSON baru), tampilkan pesan atau skip
     if (!data.network || !data.network.endpoints) {
-        elements.endpointsGrid.innerHTML = '<div class="empty-state" style="grid-column:1/-1; padding:10px; border:none; color:var(--text-muted); font-size:0.8rem;">Endpoint data unavailable</div>';
+        elements.endpointsGrid.innerHTML = '<div class="empty-state" style="grid-column:1/-1; padding:10px; border:none; color:var(--text-muted); font-size:0.8rem;">Monitoring PC Hybrid Mode</div>';
         return;
     }
     
@@ -232,9 +269,10 @@ function renderEndpoints(data) {
 function renderFeatures(data) {
     if (!elements.sourcesContainer || !elements.filtersContainer) return;
 
-    const caps = (data.server && data.server.capabilities) ? data.server.capabilities : { sources: [], filters: [] };
+    // Support both enterprise and simplified structure
+    const caps = (data.server && data.server.capabilities) ? data.server.capabilities : 
+                 { sources: data.server_engine?.sources || [], filters: [] };
 
-    // 1. Source Managers (Hanya Teks, tanpa gambar)
     const sourceManagers = caps.sources || [];
     if(elements.sourceCount) elements.sourceCount.textContent = sourceManagers.length;
     
@@ -242,7 +280,6 @@ function renderFeatures(data) {
         .map(source => `<span class="source-tag">${source}</span>`)
         .join('');
         
-    // 2. Filters
     const audioFilters = caps.filters || [];
     if(elements.filterCount) elements.filterCount.textContent = audioFilters.length;
     elements.filtersContainer.innerHTML = audioFilters
@@ -253,7 +290,14 @@ function renderFeatures(data) {
 function renderNowPlaying(data) {
     if (!elements.tracksContainer) return;
 
-    const tracks = data.now_playing || [];
+    // Handle jika now_playing adalah OBJECT (PC Hybrid) atau ARRAY (Enterprise)
+    let tracks = data.now_playing || [];
+    if (!Array.isArray(tracks) && tracks) {
+        // Jika object single, masukkan ke array
+        tracks = [tracks];
+    } else if (!tracks) {
+        tracks = [];
+    }
     
     if(elements.playerCountBadge) elements.playerCountBadge.textContent = `${tracks.length} Active`;
     
@@ -272,17 +316,28 @@ function renderNowPlaying(data) {
     elements.tracksContainer.innerHTML = '';
     
     tracks.forEach(track => {
-        const meta = track.metadata || {};
-        const playback = track.playback_state || {};
+        // Normalisasi data agar bisa baca format PC Hybrid & Enterprise
+        const meta = track.metadata || track; // Support keduanya
+        const playback = track.playback_state || track; // Support keduanya
         
         const title = meta.title || 'Unknown Title';
         const author = meta.author || 'Unknown Artist';
-        const artwork = meta.artwork_url || 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f3b5.png';
+        const artwork = meta.artwork_url || meta.artwork || 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/1f3b5.png';
         const source = meta.source || 'unknown';
         
-        const duration = playback.duration?.raw || 0;
-        const position = playback.position?.raw || 0;
+        // Jika format PC Hybrid (tidak ada duration raw), tampilkan teks status
+        const durationRaw = playback.duration?.raw || 0;
+        const positionRaw = playback.position?.raw || 0;
         
+        let durationText = formatDuration(durationRaw);
+        let positionText = formatDuration(positionRaw);
+
+        // Fallback jika PC Hybrid tidak kirim timestamp
+        if (!durationRaw && meta.playback_status) {
+             positionText = meta.playback_status;
+             durationText = "";
+        }
+
         const card = document.createElement('div');
         card.className = 'track-card';
         
@@ -298,7 +353,7 @@ function renderNowPlaying(data) {
                 <span class="track-artist" title="${author}">${author}</span>
                 <div class="track-footer">
                     <span class="track-source">${source}</span>
-                    <span class="track-duration">${formatDuration(position)} / ${formatDuration(duration)}</span>
+                    <span class="track-duration">${positionText} ${durationText ? '/ ' + durationText : ''}</span>
                 </div>
             </div>
         `;
@@ -324,7 +379,10 @@ async function fetchData() {
         
         if (result) {
             if (result.success === true || result.success === undefined) {
-                const data = result.data || result;
+                const rawData = result.data || result;
+                
+                // TRANSFORM DATA: Mengubah format PC Hybrid ke Enterprise agar UI konsisten
+                const data = transformData(rawData);
                 
                 renderVersion(data);
                 renderServerStatus(data);
@@ -334,7 +392,7 @@ async function fetchData() {
                 renderPlayersData(data);
                 renderEndpoints(data);
                 renderFeatures(data);
-                renderNowPlaying(data);
+                renderNowPlaying(data); // Render akan handle object/array
                 
                 updateTime();
                 retryCount = 0;
