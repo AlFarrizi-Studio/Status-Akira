@@ -37,7 +37,7 @@
             </div>
         </header>
 
-        <!-- Server Info Banner -->
+        <!-- Server Info Banner (Updated) -->
         <section class="server-banner">
             <div class="server-details">
                 <div class="server-item">
@@ -49,12 +49,45 @@
                     <span class="value mono">25867</span>
                 </div>
                 <div class="server-item">
+                    <span class="label">Password</span>
+                    <a href="https://discord.gg/Urc3xG9h8f" target="_blank" class="value mono link">discord.gg/Urc3xG9h8f</a>
+                </div>
+                <div class="server-item">
                     <span class="label">Secure</span>
                     <span class="value mono secure-false">false</span>
                 </div>
                 <div class="server-item">
                     <span class="label">Version</span>
                     <span class="value mono" id="versionDisplay">--</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Now Playing Section (New) -->
+        <section class="now-playing-section">
+            <div class="card now-playing-card">
+                <div class="card-header">
+                    <div class="card-icon playing">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18V5l12-2v13"/>
+                            <circle cx="6" cy="18" r="3"/>
+                            <circle cx="18" cy="16" r="3"/>
+                        </svg>
+                    </div>
+                    <h2>Now Playing</h2>
+                    <div class="player-count" id="playerCountBadge">0 Active</div>
+                </div>
+                <div class="card-body">
+                    <div class="tracks-container" id="tracksContainer">
+                        <!-- Dynamic content -->
+                        <div class="empty-state">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M8 12h8M12 8v8"/>
+                            </svg>
+                            <span>No track playing</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -191,18 +224,19 @@
             </div>
         </section>
 
-        <!-- Players Section -->
+        <!-- Players Stats Mini -->
         <section class="players-section">
             <div class="card players-card">
                 <div class="card-header">
                     <div class="card-icon players">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 18V5l12-2v13"/>
-                            <circle cx="6" cy="18" r="3"/>
-                            <circle cx="18" cy="16" r="3"/>
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                         </svg>
                     </div>
-                    <h2>Players</h2>
+                    <h2>Player Statistics</h2>
                 </div>
                 <div class="card-body">
                     <div class="players-grid">
@@ -227,8 +261,8 @@
             </div>
         </section>
 
-        <!-- Endpoints Status -->
-        <section class="endpoints-section">
+        <!-- Endpoints & Features Section -->
+        <section class="features-section">
             <div class="card endpoints-card">
                 <div class="card-header">
                     <div class="card-icon endpoints">
@@ -246,10 +280,7 @@
                     </div>
                 </div>
             </div>
-        </section>
 
-        <!-- Features Section -->
-        <section class="features-section">
             <div class="card features-card">
                 <div class="card-header">
                     <div class="card-icon features">
@@ -262,23 +293,6 @@
                 </div>
                 <div class="card-body">
                     <div class="sources-container" id="sourcesContainer">
-                        <!-- Dynamic content -->
-                    </div>
-                </div>
-            </div>
-
-            <div class="card filters-card">
-                <div class="card-header">
-                    <div class="card-icon filters">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46"/>
-                        </svg>
-                    </div>
-                    <h2>Audio Filters</h2>
-                    <div class="filter-count" id="filterCount">0 filters</div>
-                </div>
-                <div class="card-body">
-                    <div class="filters-container" id="filtersContainer">
                         <!-- Dynamic content -->
                     </div>
                 </div>
