@@ -2011,12 +2011,6 @@ ul {
 /* ============================================
    SOURCES PAGE
    ============================================ */
-.sources-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-}
-
 .source-card {
     background: var(--gradient-card);
     backdrop-filter: blur(var(--blur-amount));
@@ -2052,6 +2046,7 @@ ul {
     transform: scale(1.1) rotate(-5deg);
 }
 
+/* Source Icon Colors */
 .source-icon.youtube { background: rgba(255, 0, 0, 0.15); color: #ff0000; }
 .source-icon.spotify { background: rgba(30, 215, 96, 0.15); color: #1ed760; }
 .source-icon.soundcloud { background: rgba(255, 136, 0, 0.15); color: #ff8800; }
@@ -2094,12 +2089,13 @@ ul {
     height: 6px;
     background: var(--success);
     border-radius: 50%;
+    animation: pulse-dot 2s infinite;
 }
 
-/* Source Checkmark */
+/* Source Checkmark - Rotated -40deg (to the left) */
 .source-check {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     background: var(--success);
     display: flex;
@@ -2109,7 +2105,13 @@ ul {
     font-size: 14px;
     flex-shrink: 0;
     box-shadow: 0 0 15px var(--success-glow);
-    animation: checkmark 0.5s ease forwards;
+    transform: rotate(-40deg); /* Rotate 40% to the left */
+    transition: all var(--transition-normal);
+}
+
+.source-card:hover .source-check {
+    transform: rotate(-40deg) scale(1.1);
+    box-shadow: 0 0 25px var(--success-glow);
 }
 
 /* ============================================
@@ -2133,11 +2135,6 @@ ul {
 
 .filter-card:hover {
     transform: translateY(-4px);
-    border-color: var(--border-color-light);
-    box-shadow: var(--shadow-md);
-}
-
-.filter-card.active {
     border-color: var(--success);
     box-shadow: 0 0 25px var(--success-glow);
 }
@@ -2154,10 +2151,10 @@ ul {
     font-weight: 600;
 }
 
-/* Filter Checkmark */
+/* Filter Checkmark - Rotated -40deg (to the left) */
 .filter-check {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     background: var(--success);
     display: flex;
@@ -2167,6 +2164,13 @@ ul {
     font-size: 12px;
     flex-shrink: 0;
     box-shadow: 0 0 12px var(--success-glow);
+    transform: rotate(-40deg); /* Rotate 40% to the left */
+    transition: all var(--transition-normal);
+}
+
+.filter-card:hover .filter-check {
+    transform: rotate(-40deg) scale(1.1);
+    box-shadow: 0 0 20px var(--success-glow);
 }
 
 .filter-description {
