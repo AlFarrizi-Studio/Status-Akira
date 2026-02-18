@@ -11,115 +11,118 @@
 </head>
 <body>
     <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="logo">
-                <div class="logo-icon">
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">
+            <div class="logo-icon">
                 <i class="fas fa-music"></i>
-                </div>
-                <div class="logo-text">
-                    <h1>Al Farrizi</h1>
-                    <span>Music Bot</span>
-                </div>
             </div>
-            <!-- Toggle button removed from here -->
-        </div>
-
-        <nav class="sidebar-nav">
-            <ul>
-                <li class="nav-item active" data-page="dashboard">
-                    <a href="#dashboard">
-                        <i class="fas fa-home"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="nav-item" data-page="commands">
-                    <a href="#commands">
-                        <i class="fas fa-terminal"></i>
-                        <span>Commands</span>
-                    </a>
-                </li>
-                <li class="nav-item" data-page="stats">
-                    <a href="#stats">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Stats Resource</span>
-                    </a>
-                </li>
-                <li class="nav-item" data-page="sources">
-                    <a href="#sources">
-                        <i class="fas fa-plug"></i>
-                        <span>Source Managers</span>
-                    </a>
-                </li>
-                <li class="nav-item" data-page="filters">
-                    <a href="#filters">
-                        <i class="fas fa-sliders-h"></i>
-                        <span>Audio Filters</span>
-                    </a>
-                </li>
-                <li class="nav-item" data-page="terms">
-                    <a href="#terms">
-                        <i class="fas fa-file-contract"></i>
-                        <span>Terms Of Service</span>
-                    </a>
-                </li>
-                <li class="nav-item" data-page="support">
-                    <a href="#support">
-                        <i class="fas fa-headset"></i>
-                        <span>Support</span>
-                    </a>
-                </li>
-                <li class="nav-item" data-page="feedback">
-                    <a href="#feedback">
-                        <i class="fas fa-comment-dots"></i>
-                        <span>Feedback</span>
-                    </a>
-                </li>
-            
-                <!-- Divider -->
-                <li class="nav-divider"></li>
-            
-                <!-- Theme Toggle Inside Nav -->
-                <li class="nav-item theme-nav-item" id="themeNavItem">
-                    <a href="javascript:void(0)" id="themeToggle">
-                        <i class="fas fa-moon"></i>
-                        <span>Dark Mode</span>
-                    </a>
-                </li>
-            
-                <!-- Sidebar Toggle Inside Nav -->
-                <li class="nav-item collapse-nav-item">
-                    <a href="javascript:void(0)" id="sidebarToggle">
-                        <i class="fas fa-chevron-left"></i>
-                        <span>Collapse Menu</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="version-info">
-                <span class="version-badge">v4.23.7</span>
+            <div class="logo-text">
+                <h1>Al Farrizi</h1>
+                <span>Music Bot</span>
             </div>
         </div>
-    </aside>
-    
-    <!-- Mobile Sidebar Overlay -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        <!-- Close button for mobile -->
+        <button class="sidebar-close-mobile" id="sidebarCloseMobile">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
 
-    <!-- Mobile Header -->
-    <header class="mobile-header">
-        <button class="mobile-menu-btn" id="mobileMenuBtn">
-            <i class="fas fa-bars"></i>
-        </button>
-        <div class="mobile-logo">
-            <i class="fas fa-music"></i>
-            <span>Al Farrizi</span>
+    <nav class="sidebar-nav">
+        <ul>
+            <li class="nav-item active" data-page="dashboard">
+                <a href="#dashboard">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item" data-page="commands">
+                <a href="#commands">
+                    <i class="fas fa-terminal"></i>
+                    <span>Commands</span>
+                </a>
+            </li>
+            <li class="nav-item" data-page="stats">
+                <a href="#stats">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Stats Resource</span>
+                </a>
+            </li>
+            <li class="nav-item" data-page="sources">
+                <a href="#sources">
+                    <i class="fas fa-plug"></i>
+                    <span>Source Managers</span>
+                </a>
+            </li>
+            <li class="nav-item" data-page="filters">
+                <a href="#filters">
+                    <i class="fas fa-sliders-h"></i>
+                    <span>Audio Filters</span>
+                </a>
+            </li>
+            <li class="nav-item" data-page="terms">
+                <a href="#terms">
+                    <i class="fas fa-file-contract"></i>
+                    <span>Terms Of Service</span>
+                </a>
+            </li>
+            <li class="nav-item" data-page="support">
+                <a href="#support">
+                    <i class="fas fa-headset"></i>
+                    <span>Support</span>
+                </a>
+            </li>
+            <li class="nav-item" data-page="feedback">
+                <a href="#feedback">
+                    <i class="fas fa-comment-dots"></i>
+                    <span>Feedback</span>
+                </a>
+            </li>
+            
+            <!-- Divider -->
+            <li class="nav-divider"></li>
+            
+            <!-- Theme Toggle -->
+            <li class="nav-item special-nav-item theme-nav-item" id="themeNavItem">
+                <a href="javascript:void(0)" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                    <span>Dark Mode</span>
+                </a>
+            </li>
+            
+            <!-- Sidebar Collapse Toggle - Desktop Only -->
+            <li class="nav-item special-nav-item collapse-nav-item">
+                <a href="javascript:void(0)" id="sidebarToggle">
+                    <i class="fas fa-chevron-left"></i>
+                    <span>Collapse Menu</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="version-info">
+            <span class="version-badge">v4.23.7</span>
         </div>
-        <button class="theme-toggle-mobile" id="themeToggleMobile">
-            <i class="fas fa-moon"></i>
-        </button>
-    </header>
+    </div>
+</aside>
+
+<!-- Mobile Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Mobile Header -->
+<header class="mobile-header">
+    <button class="mobile-menu-btn" id="mobileMenuBtn">
+        <i class="fas fa-bars"></i>
+    </button>
+    <div class="mobile-logo">
+        <i class="fas fa-music"></i>
+        <span>Al Farrizi</span>
+    </div>
+    <button class="theme-toggle-mobile" id="themeToggleMobile">
+        <i class="fas fa-moon"></i>
+    </button>
+</header>
 
     <!-- Main Content -->
     <main class="main-content" id="mainContent">
@@ -1172,4 +1175,5 @@
     <script src="js/app.js"></script>
 </body>
 </html>
+
 
