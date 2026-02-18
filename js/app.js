@@ -1,7 +1,7 @@
 /* ============================================
    AL FARRIZI MUSIC BOT - DASHBOARD APPLICATION
-   Version: 4.24.0
-   Now Playing dengan Real-time Progress (No Refresh Flicker)
+   Version: 4.24.1
+   Now Playing dengan Real-time Progress & Ping
    ============================================ */
 
 // ============================================
@@ -25,15 +25,15 @@ const state = {
     lastUpdated: null,
     charts: {},
     refreshInterval: null,
-    progressInterval: null, // NEW: interval untuk progress
+    progressInterval: null,
     chartsInitialized: false,
     currentPage: 'dashboard',
     sourcesLoaded: false,
     filtersLoaded: false,
     fetchCount: 0,
-    // NEW: Track state untuk Now Playing
+    // Track state untuk Now Playing
     nowPlayingState: {
-        tracks: {}, // { guildId: { position, duration, lastUpdate, isPlaying } }
+        tracks: {}, // { guildId: { position, duration, lastUpdate, isPlaying, ping, connected } }
         lastTrackIds: [], // untuk detect perubahan track
     },
 };
@@ -142,7 +142,7 @@ function stopAutoRefresh() {
 }
 
 // ============================================
-// PROGRESS TIMER FUNCTIONS (NEW)
+// PROGRESS TIMER FUNCTIONS
 // ============================================
 function startProgressTimer() {
     if (state.progressInterval) {
@@ -207,7 +207,7 @@ function updateProgressLocally() {
 // INITIALIZATION
 // ============================================
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🎵 Al Farrizi Music Bot Dashboard v4.24.0');
+    console.log('🎵 Al Farrizi Music Bot Dashboard v4.24.1');
     console.log('📡 API:', CONFIG.API_ENDPOINT);
     console.log('⏱️ Refresh Rate:', CONFIG.REFRESH_INTERVAL + 'ms');
     console.log('🎬 Progress Update:', CONFIG.PROGRESS_UPDATE_INTERVAL + 'ms');
@@ -234,7 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fetch data and start timers
     fetchData();
     startAutoRefresh();
-    startProgressTimer(); // NEW: Start progress timer
+    startProgressTimer();
     
     console.log('✅ Dashboard initialized');
 });
@@ -493,7 +493,7 @@ function fetchData() {
         updateDashboard(data, serverResponseTime);
         updateStats(data);
         
-        // NEW: Smart update Now Playing (only rebuild if tracks changed)
+        // Smart update Now Playing (only rebuild if tracks changed)
         smartUpdateNowPlaying(data);
         
         if (!state.sourcesLoaded) {
@@ -550,7 +550,6 @@ function escapeHtml(str) {
     return div.innerHTML;
 }
 
-// NEW: Format duration dari milliseconds ke mm:ss atau hh:mm:ss
 function formatDuration(ms) {
     if (!ms || ms < 0) return '0:00';
     
@@ -574,7 +573,6 @@ function formatTimestamp(stamp) {
     return stamp.replace(/^00:/, '');
 }
 
-// NEW: Generate unique track ID
 function getTrackId(track) {
     var meta = track.metadata || {};
     var guildId = track.guild_id || '';
@@ -668,7 +666,7 @@ function updateStats(data) {
 }
 
 // ============================================
-// NOW PLAYING - SMART UPDATE (NEW)
+// NOW PLAYING - SMART UPDATE WITH REAL-TIME PING
 // ============================================
 function smartUpdateNowPlaying(data) {
     var nowPlaying = data.now_playing || [];
@@ -694,10 +692,51 @@ function smartUpdateNowPlaying(data) {
         state.nowPlayingState.lastTrackIds = nowPlaying.map(function(track) {
             return getTrackId(track);
         });
+    } else {
+        // FIXED: Update dynamic data (ping, status) without rebuilding cards
+        updateNowPlayingDynamicData(nowPlaying);
     }
     
     // Always sync position data from API
     syncTrackPositions(nowPlaying);
+}
+
+// NEW: Update dynamic data like Ping and Status without rebuilding
+function updateNowPlayingDynamicData(nowPlaying) {
+    nowPlaying.forEach(function(track) {
+        var guildId = track.guild_id || '';
+        var playback = track.playback_state || {};
+        
+        var card = document.querySelector('[data-guild-id="' + guildId + '"]');
+        if (!card) return;
+        
+        // Update Ping
+        var ping = playback.ping || '--';
+        var pingEl = card.querySelector('.np-ping');
+        if (pingEl) {
+            pingEl.textContent = ping;
+        }
+        
+        // Update Connection Status
+        var connected = playback.connected !== false;
+        var isPaused = playback.paused === true;
+        var statusEl = card.querySelector('.np-status');
+        if (statusEl) {
+            // Update class
+            statusEl.className = 'np-status ' + (connected ? 'connected' : 'disconnected');
+            
+            // Update content
+            var statusIcon = connected ? 'fa-check-circle' : 'fa-times-circle';
+            var statusText = isPaused ? 'Paused' : (connected ? 'Playing' : 'Disconnected');
+            statusEl.innerHTML = '<i class="fas ' + statusIcon + '"></i> ' + statusText;
+        }
+        
+        // Update playing indicator icon (play/pause)
+        var indicatorEl = card.querySelector('.np-playing-indicator i');
+        if (indicatorEl) {
+            indicatorEl.className = 'fas ' + (isPaused ? 'fa-pause' : 'fa-play');
+        }
+    });
 }
 
 function rebuildNowPlayingCards(nowPlaying) {
@@ -733,6 +772,7 @@ function syncTrackPositions(nowPlaying) {
         var durationRaw = (playback.duration && playback.duration.raw) ? playback.duration.raw : 0;
         var isPaused = playback.paused === true;
         var connected = playback.connected !== false;
+        var ping = playback.ping || '--';
         
         // Update or create track state
         state.nowPlayingState.tracks[guildId] = {
@@ -741,6 +781,8 @@ function syncTrackPositions(nowPlaying) {
             lastUpdate: now,
             isPlaying: connected && !isPaused,
             isPaused: isPaused,
+            ping: ping,
+            connected: connected,
         };
     });
     
@@ -780,8 +822,11 @@ function createNowPlayingCard(track, index) {
         lastUpdate: Date.now(),
         isPlaying: connected && !isPaused,
         isPaused: isPaused,
+        ping: ping,
+        connected: connected,
     };
     
+    // FIXED: Added class "np-ping" to ping span for real-time update
     return '<div class="now-playing-card animate-fade-in-up" data-guild-id="' + escapeHtml(guildId) + '" style="animation-delay: ' + (index * 0.1) + 's">' +
         '<div class="np-header">' +
             '<div class="np-artwork">' +
@@ -803,7 +848,7 @@ function createNowPlayingCard(track, index) {
         '</div>' +
         '<div class="np-footer">' +
             '<div class="np-stats">' +
-                '<span class="np-stat"><i class="fas fa-signal"></i> ' + ping + '</span>' +
+                '<span class="np-stat"><i class="fas fa-signal"></i> <span class="np-ping">' + ping + '</span></span>' +
                 '<span class="np-stat"><i class="fas fa-server"></i> ' + (guildId && guildId.length > 6 ? '...' + guildId.slice(-6) : guildId) + '</span>' +
             '</div>' +
             '<span class="np-status ' + (connected ? 'connected' : 'disconnected') + '">' +
@@ -1438,17 +1483,17 @@ document.addEventListener('touchmove', function(e) {
 document.addEventListener('visibilitychange', function() {
     if (document.hidden) {
         stopAutoRefresh();
-        stopProgressTimer(); // NEW: Stop progress timer too
+        stopProgressTimer();
     } else {
         fetchData();
         startAutoRefresh();
-        startProgressTimer(); // NEW: Restart progress timer
+        startProgressTimer();
     }
 });
 
 window.addEventListener('beforeunload', function() {
     stopAutoRefresh();
-    stopProgressTimer(); // NEW: Clean up progress timer
+    stopProgressTimer();
 });
 
 // ============================================
@@ -1467,4 +1512,4 @@ window.dashboard = {
     stopProgressTimer: stopProgressTimer,
 };
 
-console.log('📜 app.js v4.24.0 loaded successfully');
+console.log('📜 app.js v4.24.1 loaded successfully');
