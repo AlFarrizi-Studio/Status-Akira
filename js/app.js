@@ -9,7 +9,7 @@
 // ============================================
 const CONFIG = {
     API_ENDPOINT: 'https://unclaiming-fully-camron.ngrok-free.dev/all',
-    REFRESH_INTERVAL: 1000,
+    REFRESH_INTERVAL: 1000, // 1 second for real-time
     CHART_HISTORY_LENGTH: 30,
     TOAST_DURATION: 4000,
     ANIMATION_DELAY: 100,
@@ -28,6 +28,7 @@ const state = {
     currentPage: 'dashboard',
     sourcesLoaded: false,
     filtersLoaded: false,
+    fetchCount: 0,
 };
 
 // ============================================
@@ -110,11 +111,38 @@ function initElements() {
 }
 
 // ============================================
+// AUTO REFRESH FUNCTIONS (MUST BE BEFORE INIT)
+// ============================================
+function startAutoRefresh() {
+    // Clear existing interval if any
+    if (state.refreshInterval) {
+        clearInterval(state.refreshInterval);
+        state.refreshInterval = null;
+    }
+    
+    // Start new interval
+    state.refreshInterval = setInterval(function() {
+        fetchData();
+    }, CONFIG.REFRESH_INTERVAL);
+    
+    console.log('⏱️ Auto-refresh started (' + CONFIG.REFRESH_INTERVAL + 'ms)');
+}
+
+function stopAutoRefresh() {
+    if (state.refreshInterval) {
+        clearInterval(state.refreshInterval);
+        state.refreshInterval = null;
+        console.log('⏱️ Auto-refresh stopped');
+    }
+}
+
+// ============================================
 // INITIALIZATION
 // ============================================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
     console.log('🎵 Al Farrizi Music Bot Dashboard v4.23.7');
     console.log('📡 API:', CONFIG.API_ENDPOINT);
+    console.log('⏱️ Refresh Rate:', CONFIG.REFRESH_INTERVAL + 'ms');
     
     initElements();
     initTheme();
@@ -126,12 +154,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize charts
     waitForChartJS()
-        .then(() => {
+        .then(function() {
             initCharts();
             state.chartsInitialized = true;
             console.log('📊 Charts ready');
         })
-        .catch(err => console.warn('⚠️ Charts unavailable:', err.message));
+        .catch(function(err) {
+            console.warn('⚠️ Charts unavailable:', err.message);
+        });
     
     // Fetch data and start refresh
     fetchData();
@@ -140,15 +170,16 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('✅ Dashboard initialized');
 });
 
-function waitForChartJS(timeout = 5000) {
-    return new Promise((resolve, reject) => {
+function waitForChartJS(timeout) {
+    timeout = timeout || 5000;
+    return new Promise(function(resolve, reject) {
         if (typeof Chart !== 'undefined') {
             resolve();
             return;
         }
         
-        const start = Date.now();
-        const check = setInterval(() => {
+        var start = Date.now();
+        var check = setInterval(function() {
             if (typeof Chart !== 'undefined') {
                 clearInterval(check);
                 resolve();
@@ -164,34 +195,40 @@ function waitForChartJS(timeout = 5000) {
 // THEME MANAGEMENT
 // ============================================
 function initTheme() {
-    const saved = localStorage.getItem('theme') || 'dark';
+    var saved = localStorage.getItem('theme') || 'dark';
     setTheme(saved);
     
     // Theme toggle events
-    elements.themeToggle?.addEventListener('click', (e) => {
-        e.preventDefault();
-        toggleTheme();
-    });
+    if (elements.themeToggle) {
+        elements.themeToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            toggleTheme();
+        });
+    }
     
-    elements.themeToggleMobile?.addEventListener('click', toggleTheme);
+    if (elements.themeToggleMobile) {
+        elements.themeToggleMobile.addEventListener('click', function() {
+            toggleTheme();
+        });
+    }
 }
 
 function setTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
     
-    const isDark = theme === 'dark';
-    const icon = isDark ? 'fa-moon' : 'fa-sun';
-    const text = isDark ? 'Dark Mode' : 'Light Mode';
+    var isDark = theme === 'dark';
+    var icon = isDark ? 'fa-moon' : 'fa-sun';
+    var text = isDark ? 'Dark Mode' : 'Light Mode';
     
     // Update sidebar theme toggle
     if (elements.themeToggle) {
-        elements.themeToggle.innerHTML = `<i class="fas ${icon}"></i><span>${text}</span>`;
+        elements.themeToggle.innerHTML = '<i class="fas ' + icon + '"></i><span>' + text + '</span>';
     }
     
     // Update mobile theme toggle
     if (elements.themeToggleMobile) {
-        elements.themeToggleMobile.innerHTML = `<i class="fas ${icon}"></i>`;
+        elements.themeToggleMobile.innerHTML = '<i class="fas ' + icon + '"></i>';
     }
     
     // Update charts
@@ -201,13 +238,14 @@ function setTheme(theme) {
 }
 
 function toggleTheme() {
-    const current = document.documentElement.getAttribute('data-theme');
-    setTheme(current === 'dark' ? 'light' : 'dark');
-    showToast('Theme Changed', `Switched to ${current === 'dark' ? 'Light' : 'Dark'} Mode`, 'info');
+    var current = document.documentElement.getAttribute('data-theme');
+    var newTheme = current === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+    showToast('Theme Changed', 'Switched to ' + (newTheme === 'dark' ? 'Dark' : 'Light') + ' Mode', 'info');
 }
 
 function getChartColors() {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     return {
         primary: '#6366f1',
         primaryLight: 'rgba(99, 102, 241, 0.2)',
@@ -224,49 +262,59 @@ function getChartColors() {
 }
 
 // ============================================
-// SIDEBAR MANAGEMENT - COMPLETE FIX
+// SIDEBAR MANAGEMENT
 // ============================================
 function initSidebar() {
     // Desktop collapse toggle
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    sidebarToggle?.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        elements.sidebar?.classList.toggle('collapsed');
-        const isCollapsed = elements.sidebar?.classList.contains('collapsed');
-        localStorage.setItem('sidebarCollapsed', isCollapsed);
-        
-        // Update text
-        const span = sidebarToggle.querySelector('span');
-        if (span) {
-            span.textContent = isCollapsed ? 'Expand Menu' : 'Collapse Menu';
-        }
-    });
+    var sidebarToggle = document.getElementById('sidebarToggle');
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if (elements.sidebar) {
+                elements.sidebar.classList.toggle('collapsed');
+                var isCollapsed = elements.sidebar.classList.contains('collapsed');
+                localStorage.setItem('sidebarCollapsed', isCollapsed);
+                
+                // Update text
+                var span = sidebarToggle.querySelector('span');
+                if (span) {
+                    span.textContent = isCollapsed ? 'Expand Menu' : 'Collapse Menu';
+                }
+            }
+        });
+    }
     
     // Mobile menu open
-    elements.mobileMenuBtn?.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        openMobileSidebar();
-    });
+    if (elements.mobileMenuBtn) {
+        elements.mobileMenuBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            openMobileSidebar();
+        });
+    }
     
     // Mobile close button (X)
-    elements.sidebarCloseMobile?.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        closeMobileSidebar();
-    });
+    if (elements.sidebarCloseMobile) {
+        elements.sidebarCloseMobile.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeMobileSidebar();
+        });
+    }
     
     // Overlay click to close
-    elements.sidebarOverlay?.addEventListener('click', (e) => {
-        e.preventDefault();
-        closeMobileSidebar();
-    });
+    if (elements.sidebarOverlay) {
+        elements.sidebarOverlay.addEventListener('click', function(e) {
+            e.preventDefault();
+            closeMobileSidebar();
+        });
+    }
     
     // Close sidebar when clicking a nav item on mobile
-    document.querySelectorAll('.nav-item a').forEach(link => {
-        link.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item a').forEach(function(link) {
+        link.addEventListener('click', function() {
             if (window.innerWidth <= 992) {
                 closeMobileSidebar();
             }
@@ -275,22 +323,26 @@ function initSidebar() {
     
     // Restore collapsed state on desktop
     if (localStorage.getItem('sidebarCollapsed') === 'true' && window.innerWidth > 992) {
-        elements.sidebar?.classList.add('collapsed');
-        const span = sidebarToggle?.querySelector('span');
-        if (span) span.textContent = 'Expand Menu';
+        if (elements.sidebar) {
+            elements.sidebar.classList.add('collapsed');
+        }
+        if (sidebarToggle) {
+            var span = sidebarToggle.querySelector('span');
+            if (span) span.textContent = 'Expand Menu';
+        }
     }
 }
 
 function openMobileSidebar() {
-    elements.sidebar?.classList.add('mobile-open');
-    elements.sidebarOverlay?.classList.add('active');
-    document.body.style.overflow = 'hidden'; // Prevent background scroll
+    if (elements.sidebar) elements.sidebar.classList.add('mobile-open');
+    if (elements.sidebarOverlay) elements.sidebarOverlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
 }
 
 function closeMobileSidebar() {
-    elements.sidebar?.classList.remove('mobile-open');
-    elements.sidebarOverlay?.classList.remove('active');
-    document.body.style.overflow = ''; // Restore scroll
+    if (elements.sidebar) elements.sidebar.classList.remove('mobile-open');
+    if (elements.sidebarOverlay) elements.sidebarOverlay.classList.remove('active');
+    document.body.style.overflow = '';
 }
 
 // ============================================
@@ -298,12 +350,12 @@ function closeMobileSidebar() {
 // ============================================
 function initNavigation() {
     // Get all nav items (excluding special items like theme toggle)
-    const navItems = document.querySelectorAll('.nav-item[data-page]');
+    var navItems = document.querySelectorAll('.nav-item[data-page]');
     
-    navItems.forEach(item => {
-        item.addEventListener('click', (e) => {
+    navItems.forEach(function(item) {
+        item.addEventListener('click', function(e) {
             e.preventDefault();
-            const page = item.dataset.page;
+            var page = item.dataset.page;
             if (page) {
                 navigateToPage(page);
                 
@@ -316,32 +368,35 @@ function initNavigation() {
     });
     
     // Handle browser back/forward
-    window.addEventListener('hashchange', () => {
-        const hash = window.location.hash.slice(1) || 'dashboard';
+    window.addEventListener('hashchange', function() {
+        var hash = window.location.hash.slice(1) || 'dashboard';
         navigateToPage(hash, false);
     });
     
     // Initial page load
-    const initial = window.location.hash.slice(1) || 'dashboard';
+    var initial = window.location.hash.slice(1) || 'dashboard';
     navigateToPage(initial, false);
 }
 
-function navigateToPage(pageName, updateHash = true) {
+function navigateToPage(pageName, updateHash) {
+    if (updateHash === undefined) updateHash = true;
+    
     state.currentPage = pageName;
     
     // Update nav items
-    document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+    document.querySelectorAll('.nav-item[data-page]').forEach(function(item) {
         item.classList.toggle('active', item.dataset.page === pageName);
     });
     
     // Update pages with animation
-    elements.pages.forEach(page => {
-        const isTarget = page.id === `page-${pageName}`;
+    elements.pages.forEach(function(page) {
+        var isTarget = page.id === 'page-' + pageName;
         if (isTarget) {
             page.classList.add('active');
             // Trigger animations
-            page.querySelectorAll('.animate-fade-in, .animate-fade-in-up').forEach((el, i) => {
-                el.style.animationDelay = `${i * 0.05}s`;
+            var animatedEls = page.querySelectorAll('.animate-fade-in, .animate-fade-in-up');
+            animatedEls.forEach(function(el, i) {
+                el.style.animationDelay = (i * 0.05) + 's';
             });
         } else {
             page.classList.remove('active');
@@ -358,29 +413,31 @@ function navigateToPage(pageName, updateHash = true) {
 // ============================================
 // API DATA FETCHING
 // ============================================
-async function fetchData() {
-    const startTime = performance.now();
+function fetchData() {
+    var startTime = performance.now();
     
-    try {
-        const response = await fetch(CONFIG.API_ENDPOINT, {
-            headers: {
-                'ngrok-skip-browser-warning': 'true',
-                'Accept': 'application/json',
-            },
-        });
-        
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        
-        const json = await response.json();
-        const responseTime = Math.round(performance.now() - startTime);
+    fetch(CONFIG.API_ENDPOINT, {
+        headers: {
+            'ngrok-skip-browser-warning': 'true',
+            'Accept': 'application/json',
+        },
+        cache: 'no-store'
+    })
+    .then(function(response) {
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        return response.json();
+    })
+    .then(function(json) {
+        var responseTime = Math.round(performance.now() - startTime);
         
         // Handle nested data structure
-        const data = json.data || json;
-        const serverResponseTime = data.response_time_ms || responseTime;
+        var data = json.data || json;
+        var serverResponseTime = data.response_time_ms || responseTime;
         
         state.apiData = data;
         state.isOnline = json.success !== false;
         state.lastUpdated = new Date();
+        state.fetchCount++;
         
         // Update real-time data (always update)
         updateDashboard(data, serverResponseTime);
@@ -391,23 +448,25 @@ async function fetchData() {
         if (!state.sourcesLoaded) {
             updateSources(data);
             state.sourcesLoaded = true;
+            console.log('📦 Sources loaded (one-time)');
         }
         
         if (!state.filtersLoaded) {
             updateFilters(data);
             state.filtersLoaded = true;
+            console.log('🎛️ Filters loaded (one-time)');
         }
         
         // Update charts
         if (state.chartsInitialized) {
             updateCharts(data, serverResponseTime);
         }
-        
-    } catch (error) {
+    })
+    .catch(function(error) {
         console.error('❌ Fetch error:', error.message);
         state.isOnline = false;
         updateOfflineState();
-    }
+    });
 }
 
 // ============================================
@@ -422,11 +481,11 @@ function parsePercentage(value) {
 }
 
 function safeSetText(el, text) {
-    if (el) el.textContent = text ?? '--';
+    if (el) el.textContent = (text !== null && text !== undefined) ? text : '--';
 }
 
 function safeSetWidth(el, percent) {
-    if (el) el.style.width = `${Math.min(Math.max(percent || 0, 0), 100)}%`;
+    if (el) el.style.width = Math.min(Math.max(percent || 0, 0), 100) + '%';
 }
 
 function capitalize(str) {
@@ -436,7 +495,7 @@ function capitalize(str) {
 
 function escapeHtml(str) {
     if (!str) return '';
-    const div = document.createElement('div');
+    var div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
 }
@@ -453,48 +512,52 @@ function updateDashboard(data, responseTime) {
     // API Status
     if (elements.apiStatusIndicator) {
         elements.apiStatusIndicator.classList.toggle('offline', !state.isOnline);
-        const statusText = elements.apiStatusIndicator.querySelector('.status-text');
+        var statusText = elements.apiStatusIndicator.querySelector('.status-text');
         if (statusText) statusText.textContent = state.isOnline ? 'API Online' : 'API Offline';
     }
     
     safeSetText(elements.lastUpdated, 'Just now');
     safeSetText(elements.apiStatus, state.isOnline ? 'Online' : 'Offline');
-    safeSetText(elements.responseTime, `${responseTime}ms`);
-    safeSetText(elements.serverVersion, data.server?.version?.semver);
+    safeSetText(elements.responseTime, responseTime + 'ms');
+    
+    var serverVersion = data.server && data.server.version ? data.server.version.semver : null;
+    safeSetText(elements.serverVersion, serverVersion);
     
     // Health
-    const health = data.performance?.health || {};
+    var health = (data.performance && data.performance.health) || {};
     safeSetText(elements.healthGrade, health.grade);
-    safeSetText(elements.healthScore, health.score !== undefined ? `${health.score}%` : null);
-    safeSetText(elements.uptime, data.performance?.uptime?.formatted);
+    safeSetText(elements.healthScore, health.score !== undefined ? health.score + '%' : null);
+    
+    var uptimeFormatted = data.performance && data.performance.uptime ? data.performance.uptime.formatted : null;
+    safeSetText(elements.uptime, uptimeFormatted);
     
     // Players
-    const audioStats = data.audio_stats || {};
-    const players = audioStats.players || {};
-    const total = players.total || 0;
-    const playing = players.playing || 0;
-    const idle = players.idle ?? (total - playing);
+    var audioStats = data.audio_stats || {};
+    var players = audioStats.players || {};
+    var total = players.total || 0;
+    var playing = players.playing || 0;
+    var idle = players.idle !== undefined ? players.idle : (total - playing);
     
     safeSetText(elements.totalPlayers, total.toString());
     safeSetText(elements.activePlaying, playing.toString());
     safeSetText(elements.idlePlayers, idle.toString());
     
-    const maxPlayers = Math.max(total, 10);
+    var maxPlayers = Math.max(total, 10);
     safeSetWidth(elements.playersBar, (total / maxPlayers) * 100);
     safeSetWidth(elements.activeBar, total > 0 ? (playing / total) * 100 : 0);
     safeSetWidth(elements.idleBar, total > 0 ? (idle / total) * 100 : 0);
     
     // Frame Integrity
-    const frames = audioStats.frame_analysis || {};
-    const integrity = parsePercentage(frames.integrity);
-    safeSetText(elements.frameIntegrity, `${integrity.toFixed(0)}%`);
+    var frames = audioStats.frame_analysis || {};
+    var integrity = parsePercentage(frames.integrity);
+    safeSetText(elements.frameIntegrity, integrity.toFixed(0) + '%');
     safeSetWidth(elements.frameBar, integrity);
 }
 
 function updateOfflineState() {
     if (elements.apiStatusIndicator) {
         elements.apiStatusIndicator.classList.add('offline');
-        const text = elements.apiStatusIndicator.querySelector('.status-text');
+        var text = elements.apiStatusIndicator.querySelector('.status-text');
         if (text) text.textContent = 'API Offline';
     }
     safeSetText(elements.apiStatus, 'Offline');
@@ -505,129 +568,111 @@ function updateOfflineState() {
 // STATS PAGE
 // ============================================
 function updateStats(data) {
-    const cpu = data.performance?.cpu || {};
-    const memory = data.performance?.memory || {};
-    const audioStats = data.audio_stats || {};
-    const players = audioStats.players || {};
-    const frames = audioStats.frame_analysis || {};
+    var cpu = (data.performance && data.performance.cpu) || {};
+    var memory = (data.performance && data.performance.memory) || {};
+    var audioStats = data.audio_stats || {};
+    var players = audioStats.players || {};
+    var frames = audioStats.frame_analysis || {};
     
     // CPU
     safeSetText(elements.cpuSystemLoad, cpu.system_load || '--');
     safeSetText(elements.cpuLavalinkLoad, cpu.lavalink_load || '--');
-    safeSetText(elements.cpuCores, cpu.cores?.toString());
+    safeSetText(elements.cpuCores, cpu.cores ? cpu.cores.toString() : null);
     
     // Memory
-    safeSetText(elements.memUsed, memory.used?.formatted);
-    safeSetText(elements.memAllocated, memory.allocated?.formatted);
-    safeSetText(elements.memFree, memory.free?.formatted);
+    safeSetText(elements.memUsed, memory.used ? memory.used.formatted : null);
+    safeSetText(elements.memAllocated, memory.allocated ? memory.allocated.formatted : null);
+    safeSetText(elements.memFree, memory.free ? memory.free.formatted : null);
     safeSetText(elements.memUsage, memory.usage_percent);
     
     // Players
-    safeSetText(elements.statTotalPlayers, players.total?.toString() || '0');
-    safeSetText(elements.statPlayingPlayers, players.playing?.toString() || '0');
-    safeSetText(elements.statIdlePlayers, (players.idle ?? 0).toString());
+    safeSetText(elements.statTotalPlayers, players.total ? players.total.toString() : '0');
+    safeSetText(elements.statPlayingPlayers, players.playing ? players.playing.toString() : '0');
+    safeSetText(elements.statIdlePlayers, (players.idle !== undefined ? players.idle : 0).toString());
     
     // Frames
     safeSetText(elements.statFrameIntegrity, frames.integrity);
     safeSetText(elements.statFrameStatus, frames.status);
-    safeSetText(elements.statFrameSent, frames.raw?.sent?.toString());
-    safeSetText(elements.statFrameExpected, frames.raw?.expected?.toString());
+    safeSetText(elements.statFrameSent, frames.raw ? frames.raw.sent : null);
+    safeSetText(elements.statFrameExpected, frames.raw ? frames.raw.expected : null);
 }
 
 // ============================================
 // NOW PLAYING
 // ============================================
 function updateNowPlaying(data) {
-    const nowPlaying = data.now_playing || [];
+    var nowPlaying = data.now_playing || [];
     
-    safeSetText(elements.playingCount, `${nowPlaying.length} track${nowPlaying.length !== 1 ? 's' : ''}`);
+    safeSetText(elements.playingCount, nowPlaying.length + ' track' + (nowPlaying.length !== 1 ? 's' : ''));
     
     if (!elements.nowPlayingContainer) return;
     
     if (nowPlaying.length === 0) {
-        elements.nowPlayingContainer.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-music"></i>
-                <p>No tracks currently playing</p>
-            </div>
-        `;
+        elements.nowPlayingContainer.innerHTML = 
+            '<div class="empty-state">' +
+                '<i class="fas fa-music"></i>' +
+                '<p>No tracks currently playing</p>' +
+            '</div>';
         return;
     }
     
-    elements.nowPlayingContainer.innerHTML = nowPlaying.map((track, i) => 
-        createNowPlayingCard(track, i)
-    ).join('');
+    var html = '';
+    nowPlaying.forEach(function(track, i) {
+        html += createNowPlayingCard(track, i);
+    });
+    elements.nowPlayingContainer.innerHTML = html;
 }
 
 function createNowPlayingCard(track, index) {
-    const meta = track.metadata || {};
-    const playback = track.playback_state || {};
+    var meta = track.metadata || {};
+    var playback = track.playback_state || {};
     
-    const title = meta.title || 'Unknown Title';
-    const author = meta.author || 'Unknown Artist';
-    const artwork = meta.artwork_url || 'https://via.placeholder.com/90/1a1a25/6366f1?text=♪';
-    const source = meta.source || 'unknown';
+    var title = meta.title || 'Unknown Title';
+    var author = meta.author || 'Unknown Artist';
+    var artwork = meta.artwork_url || 'https://via.placeholder.com/90/1a1a25/6366f1?text=♪';
+    var source = meta.source || 'unknown';
     
-    const position = playback.position?.raw || 0;
-    const duration = playback.duration?.raw || 1;
-    const progress = Math.min((position / duration) * 100, 100);
+    var position = (playback.position && playback.position.raw) ? playback.position.raw : 0;
+    var duration = (playback.duration && playback.duration.raw) ? playback.duration.raw : 1;
+    var progress = Math.min((position / duration) * 100, 100);
     
-    const currentTime = formatTimestamp(playback.position?.stamp);
-    const totalTime = formatTimestamp(playback.duration?.stamp);
-    const ping = playback.ping || '--';
-    const connected = playback.connected !== false;
-    const guildId = track.guild_id || '';
+    var currentTime = formatTimestamp(playback.position ? playback.position.stamp : null);
+    var totalTime = formatTimestamp(playback.duration ? playback.duration.stamp : null);
+    var ping = playback.ping || '--';
+    var connected = playback.connected !== false;
+    var guildId = track.guild_id || '';
     
-    return `
-        <div class="now-playing-card animate-fade-in-up" style="animation-delay: ${index * 0.1}s">
-            <div class="np-header">
-                <div class="np-artwork">
-                    <img src="${escapeHtml(artwork)}" alt="Artwork" 
-                         onerror="this.src='https://via.placeholder.com/90/1a1a25/6366f1?text=♪'">
-                    <div class="np-playing-indicator">
-                        <i class="fas fa-play"></i>
-                    </div>
-                </div>
-                <div class="np-info">
-                    <h4 class="np-title" title="${escapeHtml(title)}">${escapeHtml(title)}</h4>
-                    <p class="np-artist" title="${escapeHtml(author)}">${escapeHtml(author)}</p>
-                    <span class="np-source">
-                        <i class="${getSourceIcon(source)}"></i>
-                        ${capitalize(source)}
-                    </span>
-                </div>
-            </div>
-            <div class="np-progress">
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: ${progress}%"></div>
-                </div>
-                <div class="progress-time">
-                    <span>${currentTime}</span>
-                    <span>${totalTime}</span>
-                </div>
-            </div>
-            <div class="np-footer">
-                <div class="np-stats">
-                    <span class="np-stat">
-                        <i class="fas fa-signal"></i>
-                        ${ping}
-                    </span>
-                    <span class="np-stat">
-                        <i class="fas fa-server"></i>
-                        ${guildId ? `...${guildId.slice(-6)}` : '--'}
-                    </span>
-                </div>
-                <span class="np-status ${connected ? 'connected' : 'disconnected'}">
-                    <i class="fas fa-${connected ? 'check-circle' : 'times-circle'}"></i>
-                    ${connected ? 'Connected' : 'Disconnected'}
-                </span>
-            </div>
-        </div>
-    `;
+    return '<div class="now-playing-card animate-fade-in-up" style="animation-delay: ' + (index * 0.1) + 's">' +
+        '<div class="np-header">' +
+            '<div class="np-artwork">' +
+                '<img src="' + escapeHtml(artwork) + '" alt="Artwork" onerror="this.src=\'https://via.placeholder.com/90/1a1a25/6366f1?text=♪\'">' +
+                '<div class="np-playing-indicator"><i class="fas fa-play"></i></div>' +
+            '</div>' +
+            '<div class="np-info">' +
+                '<h4 class="np-title" title="' + escapeHtml(title) + '">' + escapeHtml(title) + '</h4>' +
+                '<p class="np-artist" title="' + escapeHtml(author) + '">' + escapeHtml(author) + '</p>' +
+                '<span class="np-source"><i class="' + getSourceIcon(source) + '"></i> ' + capitalize(source) + '</span>' +
+            '</div>' +
+        '</div>' +
+        '<div class="np-progress">' +
+            '<div class="progress-bar"><div class="progress-fill" style="width: ' + progress + '%"></div></div>' +
+            '<div class="progress-time"><span>' + currentTime + '</span><span>' + totalTime + '</span></div>' +
+        '</div>' +
+        '<div class="np-footer">' +
+            '<div class="np-stats">' +
+                '<span class="np-stat"><i class="fas fa-signal"></i> ' + ping + '</span>' +
+                '<span class="np-stat"><i class="fas fa-server"></i> ' + (guildId ? '...' + guildId.slice(-6) : '--') + '</span>' +
+            '</div>' +
+            '<span class="np-status ' + (connected ? 'connected' : 'disconnected') + '">' +
+                '<i class="fas fa-' + (connected ? 'check-circle' : 'times-circle') + '"></i> ' +
+                (connected ? 'Connected' : 'Disconnected') +
+            '</span>' +
+        '</div>' +
+    '</div>';
 }
 
 function getSourceIcon(source) {
-    const icons = {
+    var icons = {
         youtube: 'fab fa-youtube',
         spotify: 'fab fa-spotify',
         soundcloud: 'fab fa-soundcloud',
@@ -639,138 +684,143 @@ function getSourceIcon(source) {
         tidal: 'fas fa-water',
         http: 'fas fa-globe',
     };
-    return icons[source?.toLowerCase()] || 'fas fa-music';
+    var key = source ? source.toLowerCase() : '';
+    return icons[key] || 'fas fa-music';
 }
 
 // ============================================
-// SOURCES PAGE
+// SOURCES PAGE (Load Once)
 // ============================================
 function updateSources(data) {
     if (!elements.sourcesGrid) return;
     
-    const sources = data.server?.capabilities?.sources || [];
+    var capabilities = data.server && data.server.capabilities;
+    var sources = (capabilities && capabilities.sources) || [];
     
     if (sources.length === 0) {
-        elements.sourcesGrid.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-plug"></i>
-                <p>No sources available</p>
-            </div>
-        `;
+        elements.sourcesGrid.innerHTML = 
+            '<div class="empty-state">' +
+                '<i class="fas fa-plug"></i>' +
+                '<p>No sources available</p>' +
+            '</div>';
         return;
     }
     
-    const sorted = [...sources].sort((a, b) => a.localeCompare(b));
+    var sorted = sources.slice().sort(function(a, b) {
+        return a.localeCompare(b);
+    });
     
-    elements.sourcesGrid.innerHTML = sorted.map((source, i) => {
-        const info = getSourceInfo(source);
-        return `
-            <div class="source-card animate-fade-in-up" style="animation-delay: ${i * 0.03}s">
-                <div class="source-icon ${info.class}">
-                    <i class="${info.icon}"></i>
-                </div>
-                <div class="source-info">
-                    <h4 class="source-name">${escapeHtml(info.name)}</h4>
-                    <p class="source-status">Available</p>
-                </div>
-                <div class="source-check">
-                    <i class="fas fa-check"></i>
-                </div>
-            </div>
-        `;
-    }).join('');
+    var html = '';
+    sorted.forEach(function(source, i) {
+        var info = getSourceInfo(source);
+        html += '<div class="source-card animate-fade-in-up" style="animation-delay: ' + (i * 0.03) + 's">' +
+            '<div class="source-icon ' + info.iconClass + '"><i class="' + info.icon + '"></i></div>' +
+            '<div class="source-info">' +
+                '<h4 class="source-name">' + escapeHtml(info.name) + '</h4>' +
+                '<p class="source-status">Available</p>' +
+            '</div>' +
+            '<div class="source-check"><i class="fas fa-check"></i></div>' +
+        '</div>';
+    });
+    
+    elements.sourcesGrid.innerHTML = html;
 }
 
 function getSourceInfo(source) {
-    const map = {
-        youtube: { name: 'YouTube', icon: 'fab fa-youtube', class: 'youtube' },
-        spotify: { name: 'Spotify', icon: 'fab fa-spotify', class: 'spotify' },
-        soundcloud: { name: 'SoundCloud', icon: 'fab fa-soundcloud', class: 'soundcloud' },
-        deezer: { name: 'Deezer', icon: 'fas fa-compact-disc', class: 'deezer' },
-        applemusic: { name: 'Apple Music', icon: 'fab fa-apple', class: 'applemusic' },
-        tidal: { name: 'Tidal', icon: 'fas fa-water', class: 'tidal' },
-        amazonmusic: { name: 'Amazon Music', icon: 'fab fa-amazon', class: 'amazon' },
-        pandora: { name: 'Pandora', icon: 'fas fa-podcast', class: 'default' },
-        qobuz: { name: 'Qobuz', icon: 'fas fa-headphones', class: 'default' },
-        twitch: { name: 'Twitch', icon: 'fab fa-twitch', class: 'twitch' },
-        vimeo: { name: 'Vimeo', icon: 'fab fa-vimeo-v', class: 'vimeo' },
-        bilibili: { name: 'Bilibili', icon: 'fas fa-tv', class: 'default' },
-        nicovideo: { name: 'Niconico', icon: 'fas fa-play-circle', class: 'default' },
-        instagram: { name: 'Instagram', icon: 'fab fa-instagram', class: 'instagram' },
-        twitter: { name: 'Twitter/X', icon: 'fab fa-twitter', class: 'twitter' },
-        reddit: { name: 'Reddit', icon: 'fab fa-reddit-alien', class: 'reddit' },
-        tumblr: { name: 'Tumblr', icon: 'fab fa-tumblr', class: 'default' },
-        pinterest: { name: 'Pinterest', icon: 'fab fa-pinterest', class: 'default' },
-        telegram: { name: 'Telegram', icon: 'fab fa-telegram', class: 'telegram' },
-        bluesky: { name: 'Bluesky', icon: 'fas fa-cloud', class: 'default' },
-        kwai: { name: 'Kwai', icon: 'fas fa-video', class: 'default' },
-        bandcamp: { name: 'Bandcamp', icon: 'fab fa-bandcamp', class: 'bandcamp' },
-        mixcloud: { name: 'Mixcloud', icon: 'fab fa-mixcloud', class: 'mixcloud' },
-        audiomack: { name: 'Audiomack', icon: 'fas fa-headphones-alt', class: 'default' },
-        audius: { name: 'Audius', icon: 'fas fa-wave-square', class: 'default' },
-        yandexmusic: { name: 'Yandex Music', icon: 'fab fa-yandex', class: 'default' },
-        vkmusic: { name: 'VK Music', icon: 'fab fa-vk', class: 'default' },
-        jiosaavn: { name: 'JioSaavn', icon: 'fas fa-music', class: 'default' },
-        gaana: { name: 'Gaana', icon: 'fas fa-music', class: 'default' },
-        genius: { name: 'Genius', icon: 'fas fa-microphone-alt', class: 'default' },
-        lastfm: { name: 'Last.fm', icon: 'fab fa-lastfm', class: 'default' },
-        shazam: { name: 'Shazam', icon: 'fas fa-bolt', class: 'default' },
-        letrasmus: { name: 'Letras', icon: 'fas fa-align-left', class: 'default' },
-        flowery: { name: 'Flowery TTS', icon: 'fas fa-comment-dots', class: 'default' },
-        'google-tts': { name: 'Google TTS', icon: 'fab fa-google', class: 'default' },
-        http: { name: 'HTTP Streams', icon: 'fas fa-globe', class: 'http' },
-        local: { name: 'Local Files', icon: 'fas fa-folder-open', class: 'default' },
-        rss: { name: 'RSS Feeds', icon: 'fas fa-rss', class: 'default' },
-        songlink: { name: 'Songlink', icon: 'fas fa-link', class: 'default' },
-        eternalbox: { name: 'Eternal Box', icon: 'fas fa-infinity', class: 'default' },
+    var map = {
+        youtube: { name: 'YouTube', icon: 'fab fa-youtube', iconClass: 'youtube' },
+        spotify: { name: 'Spotify', icon: 'fab fa-spotify', iconClass: 'spotify' },
+        soundcloud: { name: 'SoundCloud', icon: 'fab fa-soundcloud', iconClass: 'soundcloud' },
+        deezer: { name: 'Deezer', icon: 'fas fa-compact-disc', iconClass: 'deezer' },
+        applemusic: { name: 'Apple Music', icon: 'fab fa-apple', iconClass: 'applemusic' },
+        tidal: { name: 'Tidal', icon: 'fas fa-water', iconClass: 'tidal' },
+        amazonmusic: { name: 'Amazon Music', icon: 'fab fa-amazon', iconClass: 'amazon' },
+        pandora: { name: 'Pandora', icon: 'fas fa-podcast', iconClass: 'default' },
+        qobuz: { name: 'Qobuz', icon: 'fas fa-headphones', iconClass: 'default' },
+        twitch: { name: 'Twitch', icon: 'fab fa-twitch', iconClass: 'twitch' },
+        vimeo: { name: 'Vimeo', icon: 'fab fa-vimeo-v', iconClass: 'vimeo' },
+        bilibili: { name: 'Bilibili', icon: 'fas fa-tv', iconClass: 'default' },
+        nicovideo: { name: 'Niconico', icon: 'fas fa-play-circle', iconClass: 'default' },
+        instagram: { name: 'Instagram', icon: 'fab fa-instagram', iconClass: 'instagram' },
+        twitter: { name: 'Twitter/X', icon: 'fab fa-twitter', iconClass: 'twitter' },
+        reddit: { name: 'Reddit', icon: 'fab fa-reddit-alien', iconClass: 'reddit' },
+        tumblr: { name: 'Tumblr', icon: 'fab fa-tumblr', iconClass: 'default' },
+        pinterest: { name: 'Pinterest', icon: 'fab fa-pinterest', iconClass: 'default' },
+        telegram: { name: 'Telegram', icon: 'fab fa-telegram', iconClass: 'telegram' },
+        bluesky: { name: 'Bluesky', icon: 'fas fa-cloud', iconClass: 'default' },
+        kwai: { name: 'Kwai', icon: 'fas fa-video', iconClass: 'default' },
+        bandcamp: { name: 'Bandcamp', icon: 'fab fa-bandcamp', iconClass: 'bandcamp' },
+        mixcloud: { name: 'Mixcloud', icon: 'fab fa-mixcloud', iconClass: 'mixcloud' },
+        audiomack: { name: 'Audiomack', icon: 'fas fa-headphones-alt', iconClass: 'default' },
+        audius: { name: 'Audius', icon: 'fas fa-wave-square', iconClass: 'default' },
+        yandexmusic: { name: 'Yandex Music', icon: 'fab fa-yandex', iconClass: 'default' },
+        vkmusic: { name: 'VK Music', icon: 'fab fa-vk', iconClass: 'default' },
+        jiosaavn: { name: 'JioSaavn', icon: 'fas fa-music', iconClass: 'default' },
+        gaana: { name: 'Gaana', icon: 'fas fa-music', iconClass: 'default' },
+        genius: { name: 'Genius', icon: 'fas fa-microphone-alt', iconClass: 'default' },
+        lastfm: { name: 'Last.fm', icon: 'fab fa-lastfm', iconClass: 'default' },
+        shazam: { name: 'Shazam', icon: 'fas fa-bolt', iconClass: 'default' },
+        letrasmus: { name: 'Letras', icon: 'fas fa-align-left', iconClass: 'default' },
+        flowery: { name: 'Flowery TTS', icon: 'fas fa-comment-dots', iconClass: 'default' },
+        'google-tts': { name: 'Google TTS', icon: 'fab fa-google', iconClass: 'default' },
+        http: { name: 'HTTP Streams', icon: 'fas fa-globe', iconClass: 'http' },
+        local: { name: 'Local Files', icon: 'fas fa-folder-open', iconClass: 'default' },
+        rss: { name: 'RSS Feeds', icon: 'fas fa-rss', iconClass: 'default' },
+        songlink: { name: 'Songlink', icon: 'fas fa-link', iconClass: 'default' },
+        eternalbox: { name: 'Eternal Box', icon: 'fas fa-infinity', iconClass: 'default' },
     };
     
-    const key = source.toLowerCase().replace(/[-_\s]/g, '');
-    return map[key] || {
+    var key = source.toLowerCase().replace(/[-_\s]/g, '');
+    var info = map[key];
+    
+    if (info) return info;
+    
+    return {
         name: capitalize(source.replace(/[-_]/g, ' ')),
         icon: 'fas fa-music',
-        class: 'default'
+        iconClass: 'default'
     };
 }
 
 // ============================================
-// FILTERS PAGE
+// FILTERS PAGE (Load Once)
 // ============================================
 function updateFilters(data) {
     if (!elements.filtersGrid) return;
     
-    const filters = data.server?.capabilities?.filters || [];
+    var capabilities = data.server && data.server.capabilities;
+    var filters = (capabilities && capabilities.filters) || [];
     
     if (filters.length === 0) {
-        elements.filtersGrid.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-sliders-h"></i>
-                <p>No filters available</p>
-            </div>
-        `;
+        elements.filtersGrid.innerHTML = 
+            '<div class="empty-state">' +
+                '<i class="fas fa-sliders-h"></i>' +
+                '<p>No filters available</p>' +
+            '</div>';
         return;
     }
     
-    const sorted = [...filters].sort((a, b) => a.localeCompare(b));
+    var sorted = filters.slice().sort(function(a, b) {
+        return a.localeCompare(b);
+    });
     
-    elements.filtersGrid.innerHTML = sorted.map((filter, i) => {
-        const info = getFilterInfo(filter);
-        return `
-            <div class="filter-card animate-fade-in-up" style="animation-delay: ${i * 0.03}s">
-                <div class="filter-header">
-                    <span class="filter-name">${escapeHtml(info.name)}</span>
-                    <div class="filter-check">
-                        <i class="fas fa-check"></i>
-                    </div>
-                </div>
-                <p class="filter-description">${escapeHtml(info.description)}</p>
-            </div>
-        `;
-    }).join('');
+    var html = '';
+    sorted.forEach(function(filter, i) {
+        var info = getFilterInfo(filter);
+        html += '<div class="filter-card animate-fade-in-up" style="animation-delay: ' + (i * 0.03) + 's">' +
+            '<div class="filter-header">' +
+                '<span class="filter-name">' + escapeHtml(info.name) + '</span>' +
+                '<div class="filter-check"><i class="fas fa-check"></i></div>' +
+            '</div>' +
+            '<p class="filter-description">' + escapeHtml(info.description) + '</p>' +
+        '</div>';
+    });
+    
+    elements.filtersGrid.innerHTML = html;
 }
 
 function getFilterInfo(filter) {
-    const map = {
+    var map = {
         tremolo: { name: 'Tremolo', description: 'Add trembling amplitude modulation effect to the audio' },
         vibrato: { name: 'Vibrato', description: 'Add vibrating pitch variation effect to the audio' },
         lowpass: { name: 'Low Pass', description: 'Filter out high frequencies, keeping bass and mids' },
@@ -792,8 +842,12 @@ function getFilterInfo(filter) {
         '8d': { name: '8D Audio', description: 'Create rotating spatial audio effect around listener' },
     };
     
-    const key = filter.toLowerCase();
-    return map[key] || {
+    var key = filter.toLowerCase();
+    var info = map[key];
+    
+    if (info) return info;
+    
+    return {
         name: capitalize(filter.replace(/[-_]/g, ' ')),
         description: 'Audio processing filter for enhanced sound'
     };
@@ -805,20 +859,18 @@ function getFilterInfo(filter) {
 function initCharts() {
     if (typeof Chart === 'undefined') return;
     
-    const colors = getChartColors();
+    var colors = getChartColors();
     
-    const lineDefaults = {
+    var lineDefaults = {
         responsive: true,
         maintainAspectRatio: false,
-        animation: { duration: 400 },
+        animation: { duration: 300 },
         plugins: {
             legend: { display: false },
             tooltip: {
                 backgroundColor: 'rgba(0,0,0,0.8)',
                 cornerRadius: 8,
                 padding: 12,
-                titleFont: { size: 13 },
-                bodyFont: { size: 12 },
             },
         },
         scales: {
@@ -837,35 +889,39 @@ function initCharts() {
     };
     
     // CPU Chart
-    const cpuEl = document.getElementById('cpuChart');
+    var cpuEl = document.getElementById('cpuChart');
     if (cpuEl) {
         state.charts.cpu = new Chart(cpuEl.getContext('2d'), {
             type: 'line',
             data: {
-                labels: Array(CONFIG.CHART_HISTORY_LENGTH).fill(''),
+                labels: new Array(CONFIG.CHART_HISTORY_LENGTH).fill(''),
                 datasets: [
                     {
                         label: 'System',
-                        data: Array(CONFIG.CHART_HISTORY_LENGTH).fill(0),
+                        data: new Array(CONFIG.CHART_HISTORY_LENGTH).fill(0),
                         borderColor: colors.primary,
                         backgroundColor: colors.primaryLight,
                         fill: true,
                     },
                     {
                         label: 'Lavalink',
-                        data: Array(CONFIG.CHART_HISTORY_LENGTH).fill(0),
+                        data: new Array(CONFIG.CHART_HISTORY_LENGTH).fill(0),
                         borderColor: colors.info,
                         backgroundColor: colors.infoLight,
                         fill: true,
                     },
                 ],
             },
-            options: { ...lineDefaults, scales: { ...lineDefaults.scales, y: { ...lineDefaults.scales.y, max: 100 } } },
+            options: Object.assign({}, lineDefaults, {
+                scales: Object.assign({}, lineDefaults.scales, {
+                    y: Object.assign({}, lineDefaults.scales.y, { max: 100 })
+                })
+            }),
         });
     }
     
     // Memory Chart (Doughnut)
-    const memEl = document.getElementById('memoryChart');
+    var memEl = document.getElementById('memoryChart');
     if (memEl) {
         state.charts.memory = new Chart(memEl.getContext('2d'), {
             type: 'doughnut',
@@ -881,12 +937,14 @@ function initCharts() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: { duration: 400 },
+                animation: { duration: 300 },
                 plugins: {
                     legend: { display: false },
                     tooltip: {
                         callbacks: {
-                            label: ctx => `${ctx.label}: ${ctx.raw.toFixed(1)}%`
+                            label: function(ctx) {
+                                return ctx.label + ': ' + ctx.raw.toFixed(1) + '%';
+                            }
                         }
                     }
                 },
@@ -895,7 +953,7 @@ function initCharts() {
     }
     
     // Players Chart (Bar)
-    const playersEl = document.getElementById('playersChart');
+    var playersEl = document.getElementById('playersChart');
     if (playersEl) {
         state.charts.players = new Chart(playersEl.getContext('2d'), {
             type: 'bar',
@@ -911,7 +969,7 @@ function initCharts() {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: { duration: 400 },
+                animation: { duration: 300 },
                 plugins: { legend: { display: false } },
                 scales: {
                     x: { grid: { display: false }, ticks: { color: colors.text } },
@@ -922,47 +980,50 @@ function initCharts() {
     }
     
     // Frame Chart
-    const frameEl = document.getElementById('frameChart');
+    var frameEl = document.getElementById('frameChart');
     if (frameEl) {
         state.charts.frame = new Chart(frameEl.getContext('2d'), {
             type: 'line',
             data: {
-                labels: Array(CONFIG.CHART_HISTORY_LENGTH).fill(''),
+                labels: new Array(CONFIG.CHART_HISTORY_LENGTH).fill(''),
                 datasets: [{
                     label: 'Integrity',
-                    data: Array(CONFIG.CHART_HISTORY_LENGTH).fill(100),
+                    data: new Array(CONFIG.CHART_HISTORY_LENGTH).fill(100),
                     borderColor: colors.success,
                     backgroundColor: colors.successLight,
                     fill: true,
                 }],
             },
-            options: { ...lineDefaults, scales: { ...lineDefaults.scales, y: { ...lineDefaults.scales.y, max: 100 } } },
+            options: Object.assign({}, lineDefaults, {
+                scales: Object.assign({}, lineDefaults.scales, {
+                    y: Object.assign({}, lineDefaults.scales.y, { max: 100 })
+                })
+            }),
         });
     }
     
     // Uptime/Response Chart
-    const uptimeEl = document.getElementById('uptimeChart');
+    var uptimeEl = document.getElementById('uptimeChart');
     if (uptimeEl) {
         state.charts.uptime = new Chart(uptimeEl.getContext('2d'), {
             type: 'line',
             data: {
-                labels: Array(CONFIG.CHART_HISTORY_LENGTH).fill(''),
+                labels: new Array(CONFIG.CHART_HISTORY_LENGTH).fill(''),
                 datasets: [{
                     label: 'Response (ms)',
-                    data: Array(CONFIG.CHART_HISTORY_LENGTH).fill(0),
+                    data: new Array(CONFIG.CHART_HISTORY_LENGTH).fill(0),
                     borderColor: colors.primary,
                     backgroundColor: colors.primaryLight,
                     fill: true,
                 }],
             },
-            options: {
-                ...lineDefaults,
-                elements: { point: { radius: 3, hoverRadius: 6 } },
+            options: Object.assign({}, lineDefaults, {
+                elements: { point: { radius: 2, hoverRadius: 5 } },
                 scales: {
                     x: { display: true, grid: { color: colors.grid }, ticks: { color: colors.text, maxTicksLimit: 8 } },
-                    y: { ...lineDefaults.scales.y, beginAtZero: true },
+                    y: { display: true, beginAtZero: true, grid: { color: colors.grid }, ticks: { color: colors.text } },
                 },
-            },
+            }),
         });
     }
 }
@@ -970,16 +1031,16 @@ function initCharts() {
 function updateCharts(data, responseTime) {
     if (!state.chartsInitialized) return;
     
-    const cpu = data.performance?.cpu || {};
-    const memory = data.performance?.memory || {};
-    const audioStats = data.audio_stats || {};
-    const players = audioStats.players || {};
-    const frames = audioStats.frame_analysis || {};
+    var cpu = (data.performance && data.performance.cpu) || {};
+    var memory = (data.performance && data.performance.memory) || {};
+    var audioStats = data.audio_stats || {};
+    var players = audioStats.players || {};
+    var frames = audioStats.frame_analysis || {};
     
     // CPU
     if (state.charts.cpu) {
-        const sys = Math.min(parsePercentage(cpu.system_load), 100);
-        const lava = Math.min(parsePercentage(cpu.lavalink_load), 100);
+        var sys = Math.min(parsePercentage(cpu.system_load), 100);
+        var lava = Math.min(parsePercentage(cpu.lavalink_load), 100);
         pushData(state.charts.cpu.data.datasets[0].data, sys);
         pushData(state.charts.cpu.data.datasets[1].data, lava);
         state.charts.cpu.update('none');
@@ -987,16 +1048,16 @@ function updateCharts(data, responseTime) {
     
     // Memory
     if (state.charts.memory) {
-        const usage = parsePercentage(memory.usage_percent);
+        var usage = parsePercentage(memory.usage_percent);
         state.charts.memory.data.datasets[0].data = [usage, 100 - usage];
         state.charts.memory.update('none');
     }
     
     // Players
     if (state.charts.players) {
-        const total = players.total || 0;
-        const playing = players.playing || 0;
-        const idle = players.idle ?? (total - playing);
+        var total = players.total || 0;
+        var playing = players.playing || 0;
+        var idle = players.idle !== undefined ? players.idle : (total - playing);
         state.charts.players.data.datasets[0].data = [total, playing, idle];
         state.charts.players.update('none');
     }
@@ -1009,7 +1070,7 @@ function updateCharts(data, responseTime) {
     
     // Uptime
     if (state.charts.uptime) {
-        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        var time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         pushData(state.charts.uptime.data.labels, time);
         pushData(state.charts.uptime.data.datasets[0].data, responseTime);
         state.charts.uptime.update('none');
@@ -1022,19 +1083,20 @@ function pushData(arr, value) {
 }
 
 function updateChartsTheme() {
-    const colors = getChartColors();
+    var colors = getChartColors();
     
-    Object.values(state.charts).forEach(chart => {
-        if (!chart?.options?.scales) return;
-        
-        ['x', 'y'].forEach(axis => {
-            const scale = chart.options.scales[axis];
-            if (scale) {
-                if (scale.grid) scale.grid.color = colors.grid;
-                if (scale.ticks) scale.ticks.color = colors.text;
-            }
-        });
-        chart.update('none');
+    Object.keys(state.charts).forEach(function(key) {
+        var chart = state.charts[key];
+        if (chart && chart.options && chart.options.scales) {
+            ['x', 'y'].forEach(function(axis) {
+                var scale = chart.options.scales[axis];
+                if (scale) {
+                    if (scale.grid) scale.grid.color = colors.grid;
+                    if (scale.ticks) scale.ticks.color = colors.text;
+                }
+            });
+            chart.update('none');
+        }
     });
 }
 
@@ -1042,34 +1104,38 @@ function updateChartsTheme() {
 // COMMANDS
 // ============================================
 function initCommands() {
-    elements.commandSearch?.addEventListener('input', (e) => {
-        filterCommands(e.target.value.toLowerCase().trim());
-    });
+    if (elements.commandSearch) {
+        elements.commandSearch.addEventListener('input', function(e) {
+            filterCommands(e.target.value.toLowerCase().trim());
+        });
+    }
     
-    document.querySelectorAll('.copy-btn').forEach(btn => {
+    document.querySelectorAll('.copy-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
-            const cmd = this.dataset.command;
+            var cmd = btn.dataset.command;
             copyToClipboard(cmd);
             
-            this.innerHTML = '<i class="fas fa-check"></i>';
-            this.classList.add('copied');
+            btn.innerHTML = '<i class="fas fa-check"></i>';
+            btn.classList.add('copied');
             
-            setTimeout(() => {
-                this.innerHTML = '<i class="fas fa-copy"></i>';
-                this.classList.remove('copied');
+            setTimeout(function() {
+                btn.innerHTML = '<i class="fas fa-copy"></i>';
+                btn.classList.remove('copied');
             }, 2000);
         });
     });
 }
 
 function filterCommands(query) {
-    document.querySelectorAll('.command-category').forEach(cat => {
-        let visible = false;
+    document.querySelectorAll('.command-category').forEach(function(cat) {
+        var visible = false;
         
-        cat.querySelectorAll('.command-item').forEach(item => {
-            const code = item.querySelector('code')?.textContent.toLowerCase() || '';
-            const desc = item.querySelector('p')?.textContent.toLowerCase() || '';
-            const match = !query || code.includes(query) || desc.includes(query);
+        cat.querySelectorAll('.command-item').forEach(function(item) {
+            var codeEl = item.querySelector('code');
+            var descEl = item.querySelector('p');
+            var code = codeEl ? codeEl.textContent.toLowerCase() : '';
+            var desc = descEl ? descEl.textContent.toLowerCase() : '';
+            var match = !query || code.indexOf(query) !== -1 || desc.indexOf(query) !== -1;
             
             item.style.display = match ? '' : 'none';
             if (match) visible = true;
@@ -1083,13 +1149,15 @@ function filterCommands(query) {
 // FAQ
 // ============================================
 function initFAQ() {
-    document.querySelectorAll('.faq-question').forEach(btn => {
+    document.querySelectorAll('.faq-question').forEach(function(btn) {
         btn.addEventListener('click', function() {
-            const item = this.closest('.faq-item');
-            const wasActive = item.classList.contains('active');
+            var item = btn.closest('.faq-item');
+            var wasActive = item.classList.contains('active');
             
             // Close all
-            document.querySelectorAll('.faq-item.active').forEach(i => i.classList.remove('active'));
+            document.querySelectorAll('.faq-item.active').forEach(function(i) {
+                i.classList.remove('active');
+            });
             
             // Toggle current
             if (!wasActive) item.classList.add('active');
@@ -1101,59 +1169,64 @@ function initFAQ() {
 // FEEDBACK FORM
 // ============================================
 function initFeedbackForm() {
-    elements.feedbackForm?.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const btn = e.target.querySelector('.submit-btn');
-        const originalHTML = btn.innerHTML;
-        
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-        btn.disabled = true;
-        
-        // Simulate submission
-        await new Promise(r => setTimeout(r, 1500));
-        
-        showToast('Feedback Sent!', 'Thank you for your feedback. We appreciate it!', 'success');
-        e.target.reset();
-        
-        btn.innerHTML = originalHTML;
-        btn.disabled = false;
-    });
+    if (elements.feedbackForm) {
+        elements.feedbackForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            var btn = e.target.querySelector('.submit-btn');
+            var originalHTML = btn.innerHTML;
+            
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            btn.disabled = true;
+            
+            // Simulate submission
+            setTimeout(function() {
+                showToast('Feedback Sent!', 'Thank you for your feedback. We appreciate it!', 'success');
+                e.target.reset();
+                
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+            }, 1500);
+        });
+    }
 }
 
 // ============================================
 // TOAST NOTIFICATIONS
 // ============================================
-function showToast(title, message, type = 'info') {
+function showToast(title, message, type) {
+    type = type || 'info';
+    
     if (!elements.toastContainer) return;
     
-    const icons = {
+    var icons = {
         success: 'fa-check-circle',
         error: 'fa-times-circle',
         warning: 'fa-exclamation-triangle',
         info: 'fa-info-circle',
     };
     
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.innerHTML = `
-        <div class="toast-icon"><i class="fas ${icons[type] || icons.info}"></i></div>
-        <div class="toast-content">
-            <div class="toast-title">${escapeHtml(title)}</div>
-            <div class="toast-message">${escapeHtml(message)}</div>
-        </div>
-        <button class="toast-close"><i class="fas fa-times"></i></button>
-    `;
+    var toast = document.createElement('div');
+    toast.className = 'toast ' + type;
+    toast.innerHTML = 
+        '<div class="toast-icon"><i class="fas ' + (icons[type] || icons.info) + '"></i></div>' +
+        '<div class="toast-content">' +
+            '<div class="toast-title">' + escapeHtml(title) + '</div>' +
+            '<div class="toast-message">' + escapeHtml(message) + '</div>' +
+        '</div>' +
+        '<button class="toast-close"><i class="fas fa-times"></i></button>';
     
     elements.toastContainer.appendChild(toast);
     
-    const close = () => {
+    var closeToast = function() {
         toast.classList.add('hide');
-        setTimeout(() => toast.remove(), 300);
+        setTimeout(function() {
+            if (toast.parentNode) toast.remove();
+        }, 300);
     };
     
-    toast.querySelector('.toast-close').addEventListener('click', close);
-    setTimeout(close, CONFIG.TOAST_DURATION);
+    toast.querySelector('.toast-close').addEventListener('click', closeToast);
+    setTimeout(closeToast, CONFIG.TOAST_DURATION);
 }
 
 // ============================================
@@ -1162,15 +1235,19 @@ function showToast(title, message, type = 'info') {
 function copyToClipboard(text) {
     if (navigator.clipboard) {
         navigator.clipboard.writeText(text)
-            .then(() => showToast('Copied!', `"${text}" copied to clipboard`, 'success'))
-            .catch(() => fallbackCopy(text));
+            .then(function() {
+                showToast('Copied!', '"' + text + '" copied to clipboard', 'success');
+            })
+            .catch(function() {
+                fallbackCopy(text);
+            });
     } else {
         fallbackCopy(text);
     }
 }
 
 function fallbackCopy(text) {
-    const ta = document.createElement('textarea');
+    var ta = document.createElement('textarea');
     ta.value = text;
     ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px';
     document.body.appendChild(ta);
@@ -1178,8 +1255,8 @@ function fallbackCopy(text) {
     
     try {
         document.execCommand('copy');
-        showToast('Copied!', `"${text}" copied`, 'success');
-    } catch {
+        showToast('Copied!', '"' + text + '" copied', 'success');
+    } catch (e) {
         showToast('Error', 'Failed to copy', 'error');
     }
     
@@ -1187,40 +1264,68 @@ function fallbackCopy(text) {
 }
 
 // ============================================
+// MANUAL REFRESH FUNCTIONS
+// ============================================
+function refreshSources() {
+    state.sourcesLoaded = false;
+    if (state.apiData) {
+        updateSources(state.apiData);
+        state.sourcesLoaded = true;
+        showToast('Refreshed', 'Sources updated', 'success');
+    }
+}
+
+function refreshFilters() {
+    state.filtersLoaded = false;
+    if (state.apiData) {
+        updateFilters(state.apiData);
+        state.filtersLoaded = true;
+        showToast('Refreshed', 'Filters updated', 'success');
+    }
+}
+
+// ============================================
 // WINDOW EVENTS
 // ============================================
-window.addEventListener('resize', () => {
-    // Close mobile sidebar when resizing to desktop
+window.addEventListener('resize', function() {
     if (window.innerWidth > 992) {
         closeMobileSidebar();
     }
 });
 
-// Prevent touch scroll on overlay
-document.addEventListener('touchmove', (e) => {
-    if (elements.sidebarOverlay?.classList.contains('active')) {
-        if (!elements.sidebar?.contains(e.target)) {
+document.addEventListener('touchmove', function(e) {
+    if (elements.sidebarOverlay && elements.sidebarOverlay.classList.contains('active')) {
+        if (elements.sidebar && !elements.sidebar.contains(e.target)) {
             e.preventDefault();
         }
     }
 }, { passive: false });
 
-document.addEventListener('visibilitychange', () => {
+document.addEventListener('visibilitychange', function() {
     if (document.hidden) {
-        clearInterval(state.refreshInterval);
+        stopAutoRefresh();
     } else {
         fetchData();
         startAutoRefresh();
     }
 });
 
-window.addEventListener('beforeunload', () => {
-    clearInterval(state.refreshInterval);
+window.addEventListener('beforeunload', function() {
+    stopAutoRefresh();
 });
 
 // ============================================
-// DEBUG
+// EXPOSE TO WINDOW (DEBUG)
 // ============================================
-window.dashboard = { state, CONFIG, fetchData, showToast };
+window.dashboard = {
+    state: state,
+    CONFIG: CONFIG,
+    fetchData: fetchData,
+    showToast: showToast,
+    refreshSources: refreshSources,
+    refreshFilters: refreshFilters,
+    startAutoRefresh: startAutoRefresh,
+    stopAutoRefresh: stopAutoRefresh,
+};
 
 console.log('📜 app.js loaded successfully');
