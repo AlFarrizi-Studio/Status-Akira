@@ -1,7 +1,7 @@
 /* ============================================
    AL FARRIZI MUSIC BOT - DASHBOARD APPLICATION
    Version: 4.23.7
-   Fixed & Updated
+   Fully Fixed & Tested
    ============================================ */
 
 // ============================================
@@ -9,7 +9,7 @@
 // ============================================
 const CONFIG = {
     API_ENDPOINT: 'https://unclaiming-fully-camron.ngrok-free.dev/all',
-    REFRESH_INTERVAL: 5000, // 5 seconds
+    REFRESH_INTERVAL: 5000,
     CHART_HISTORY_LENGTH: 20,
     TOAST_DURATION: 4000,
 };
@@ -27,91 +27,100 @@ const state = {
         memory: [],
         players: [],
         frames: [],
-        uptime: []
+        responseTime: []
     },
     refreshInterval: null,
     chartsInitialized: false,
+    sourcesLoaded: false,
+    filtersLoaded: false,
 };
 
 // ============================================
 // DOM ELEMENTS
 // ============================================
-const elements = {
+const elements = {};
+
+function initElements() {
     // Sidebar
-    sidebar: document.getElementById('sidebar'),
-    sidebarToggle: document.getElementById('sidebarToggle'),
-    sidebarOverlay: document.getElementById('sidebarOverlay'),
-    mobileMenuBtn: document.getElementById('mobileMenuBtn'),
-    navItems: document.querySelectorAll('.nav-item'),
+    elements.sidebar = document.getElementById('sidebar');
+    elements.sidebarToggle = document.getElementById('sidebarToggle');
+    elements.sidebarOverlay = document.getElementById('sidebarOverlay');
+    elements.mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    elements.navItems = document.querySelectorAll('.nav-item');
     
     // Theme
-    themeToggle: document.getElementById('themeToggle'),
-    themeToggleMobile: document.getElementById('themeToggleMobile'),
+    elements.themeToggle = document.getElementById('themeToggle');
+    elements.themeToggleMobile = document.getElementById('themeToggleMobile');
     
     // Pages
-    pages: document.querySelectorAll('.page'),
+    elements.pages = document.querySelectorAll('.page');
     
     // Dashboard
-    apiStatusIndicator: document.getElementById('apiStatusIndicator'),
-    lastUpdated: document.getElementById('lastUpdated'),
-    apiStatus: document.getElementById('apiStatus'),
-    responseTime: document.getElementById('responseTime'),
-    serverVersion: document.getElementById('serverVersion'),
-    healthGrade: document.getElementById('healthGrade'),
-    healthScore: document.getElementById('healthScore'),
-    uptime: document.getElementById('uptime'),
+    elements.apiStatusIndicator = document.getElementById('apiStatusIndicator');
+    elements.lastUpdated = document.getElementById('lastUpdated');
+    elements.apiStatus = document.getElementById('apiStatus');
+    elements.responseTime = document.getElementById('responseTime');
+    elements.serverVersion = document.getElementById('serverVersion');
+    elements.healthGrade = document.getElementById('healthGrade');
+    elements.healthScore = document.getElementById('healthScore');
+    elements.uptime = document.getElementById('uptime');
     
     // Now Playing
-    nowPlayingContainer: document.getElementById('nowPlayingContainer'),
-    playingCount: document.getElementById('playingCount'),
+    elements.nowPlayingContainer = document.getElementById('nowPlayingContainer');
+    elements.playingCount = document.getElementById('playingCount');
     
     // Quick Stats
-    totalPlayers: document.getElementById('totalPlayers'),
-    activePlaying: document.getElementById('activePlaying'),
-    idlePlayers: document.getElementById('idlePlayers'),
-    frameIntegrity: document.getElementById('frameIntegrity'),
-    playersBar: document.getElementById('playersBar'),
-    activeBar: document.getElementById('activeBar'),
-    idleBar: document.getElementById('idleBar'),
-    frameBar: document.getElementById('frameBar'),
+    elements.totalPlayers = document.getElementById('totalPlayers');
+    elements.activePlaying = document.getElementById('activePlaying');
+    elements.idlePlayers = document.getElementById('idlePlayers');
+    elements.frameIntegrity = document.getElementById('frameIntegrity');
+    elements.playersBar = document.getElementById('playersBar');
+    elements.activeBar = document.getElementById('activeBar');
+    elements.idleBar = document.getElementById('idleBar');
+    elements.frameBar = document.getElementById('frameBar');
     
     // Stats Page
-    cpuSystemLoad: document.getElementById('cpuSystemLoad'),
-    cpuLavalinkLoad: document.getElementById('cpuLavalinkLoad'),
-    cpuCores: document.getElementById('cpuCores'),
-    memUsed: document.getElementById('memUsed'),
-    memAllocated: document.getElementById('memAllocated'),
-    memFree: document.getElementById('memFree'),
-    memUsage: document.getElementById('memUsage'),
-    statTotalPlayers: document.getElementById('statTotalPlayers'),
-    statPlayingPlayers: document.getElementById('statPlayingPlayers'),
-    statIdlePlayers: document.getElementById('statIdlePlayers'),
-    statFrameIntegrity: document.getElementById('statFrameIntegrity'),
-    statFrameStatus: document.getElementById('statFrameStatus'),
-    statFrameSent: document.getElementById('statFrameSent'),
-    statFrameExpected: document.getElementById('statFrameExpected'),
+    elements.cpuSystemLoad = document.getElementById('cpuSystemLoad');
+    elements.cpuLavalinkLoad = document.getElementById('cpuLavalinkLoad');
+    elements.cpuCores = document.getElementById('cpuCores');
+    elements.memUsed = document.getElementById('memUsed');
+    elements.memAllocated = document.getElementById('memAllocated');
+    elements.memFree = document.getElementById('memFree');
+    elements.memUsage = document.getElementById('memUsage');
+    elements.statTotalPlayers = document.getElementById('statTotalPlayers');
+    elements.statPlayingPlayers = document.getElementById('statPlayingPlayers');
+    elements.statIdlePlayers = document.getElementById('statIdlePlayers');
+    elements.statFrameIntegrity = document.getElementById('statFrameIntegrity');
+    elements.statFrameStatus = document.getElementById('statFrameStatus');
+    elements.statFrameSent = document.getElementById('statFrameSent');
+    elements.statFrameExpected = document.getElementById('statFrameExpected');
     
     // Sources & Filters
-    sourcesGrid: document.getElementById('sourcesGrid'),
-    filtersGrid: document.getElementById('filtersGrid'),
+    elements.sourcesGrid = document.getElementById('sourcesGrid');
+    elements.filtersGrid = document.getElementById('filtersGrid');
     
     // Commands
-    commandSearch: document.getElementById('commandSearch'),
-    commandsContainer: document.getElementById('commandsContainer'),
+    elements.commandSearch = document.getElementById('commandSearch');
+    elements.commandsContainer = document.getElementById('commandsContainer');
     
     // Feedback
-    feedbackForm: document.getElementById('feedbackForm'),
+    elements.feedbackForm = document.getElementById('feedbackForm');
     
     // Toast
-    toastContainer: document.getElementById('toastContainer'),
-};
+    elements.toastContainer = document.getElementById('toastContainer');
+}
 
 // ============================================
 // INITIALIZATION
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🎵 Al Farrizi Music Bot Dashboard Initializing...');
+    console.log('🎵 Al Farrizi Music Bot Dashboard v4.23.7');
+    console.log('📡 API Endpoint:', CONFIG.API_ENDPOINT);
     
+    // Initialize DOM elements
+    initElements();
+    
+    // Initialize components
     initTheme();
     initSidebar();
     initNavigation();
@@ -119,23 +128,25 @@ document.addEventListener('DOMContentLoaded', () => {
     initFAQ();
     initFeedbackForm();
     
-    // Wait for Chart.js to be available
+    // Initialize charts when Chart.js is ready
     waitForChartJS().then(() => {
         initCharts();
         state.chartsInitialized = true;
-        console.log('📊 Charts initialized successfully');
+        console.log('📊 Charts initialized');
     }).catch(err => {
-        console.warn('⚠️ Charts not available:', err);
+        console.warn('⚠️ Charts unavailable:', err.message);
     });
     
-    // Start fetching data
+    // Fetch initial data
     fetchData();
+    
+    // Start auto-refresh
     startAutoRefresh();
     
-    console.log('✅ Dashboard initialized successfully');
+    console.log('✅ Dashboard ready');
 });
 
-// Wait for Chart.js to load
+// Wait for Chart.js
 function waitForChartJS(timeout = 5000) {
     return new Promise((resolve, reject) => {
         if (typeof Chart !== 'undefined') {
@@ -144,13 +155,13 @@ function waitForChartJS(timeout = 5000) {
         }
         
         const startTime = Date.now();
-        const checkInterval = setInterval(() => {
+        const interval = setInterval(() => {
             if (typeof Chart !== 'undefined') {
-                clearInterval(checkInterval);
+                clearInterval(interval);
                 resolve();
             } else if (Date.now() - startTime > timeout) {
-                clearInterval(checkInterval);
-                reject(new Error('Chart.js not loaded'));
+                clearInterval(interval);
+                reject(new Error('Chart.js timeout'));
             }
         }, 100);
     });
@@ -172,24 +183,16 @@ function setTheme(theme) {
     localStorage.setItem('theme', theme);
     
     const icon = theme === 'dark' ? 'fa-moon' : 'fa-sun';
-    const toggles = [elements.themeToggle, elements.themeToggleMobile];
-    
-    toggles.forEach(toggle => {
-        if (toggle) {
-            toggle.innerHTML = `<i class="fas ${icon}"></i>`;
-        }
+    [elements.themeToggle, elements.themeToggleMobile].forEach(toggle => {
+        if (toggle) toggle.innerHTML = `<i class="fas ${icon}"></i>`;
     });
     
-    // Update charts if they exist
-    if (state.chartsInitialized) {
-        updateChartsTheme();
-    }
+    if (state.chartsInitialized) updateChartsTheme();
 }
 
 function toggleTheme() {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
+    const current = document.documentElement.getAttribute('data-theme');
+    setTheme(current === 'dark' ? 'light' : 'dark');
 }
 
 function getChartColors() {
@@ -215,27 +218,25 @@ function getChartColors() {
 // ============================================
 function initSidebar() {
     elements.sidebarToggle?.addEventListener('click', () => {
-        elements.sidebar.classList.toggle('collapsed');
-        localStorage.setItem('sidebarCollapsed', elements.sidebar.classList.contains('collapsed'));
+        elements.sidebar?.classList.toggle('collapsed');
+        localStorage.setItem('sidebarCollapsed', elements.sidebar?.classList.contains('collapsed'));
     });
     
     elements.mobileMenuBtn?.addEventListener('click', () => {
-        elements.sidebar.classList.add('mobile-open');
-        elements.sidebarOverlay.classList.add('active');
+        elements.sidebar?.classList.add('mobile-open');
+        elements.sidebarOverlay?.classList.add('active');
     });
     
     elements.sidebarOverlay?.addEventListener('click', closeMobileSidebar);
     
-    // Restore sidebar state
-    const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-    if (isCollapsed && window.innerWidth > 992) {
-        elements.sidebar.classList.add('collapsed');
+    if (localStorage.getItem('sidebarCollapsed') === 'true' && window.innerWidth > 992) {
+        elements.sidebar?.classList.add('collapsed');
     }
 }
 
 function closeMobileSidebar() {
-    elements.sidebar.classList.remove('mobile-open');
-    elements.sidebarOverlay.classList.remove('active');
+    elements.sidebar?.classList.remove('mobile-open');
+    elements.sidebarOverlay?.classList.remove('active');
 }
 
 // ============================================
@@ -245,41 +246,28 @@ function initNavigation() {
     elements.navItems.forEach(item => {
         item.addEventListener('click', (e) => {
             e.preventDefault();
-            const page = item.dataset.page;
-            navigateToPage(page);
+            navigateToPage(item.dataset.page);
             closeMobileSidebar();
         });
     });
     
-    // Handle browser back/forward
     window.addEventListener('hashchange', () => {
-        const hash = window.location.hash.slice(1) || 'dashboard';
-        navigateToPage(hash, false);
+        navigateToPage(window.location.hash.slice(1) || 'dashboard', false);
     });
     
-    // Initial navigation
-    const initialPage = window.location.hash.slice(1) || 'dashboard';
-    navigateToPage(initialPage, false);
+    navigateToPage(window.location.hash.slice(1) || 'dashboard', false);
 }
 
 function navigateToPage(pageName, updateHash = true) {
-    // Update nav items
     elements.navItems.forEach(item => {
         item.classList.toggle('active', item.dataset.page === pageName);
     });
     
-    // Update pages
     elements.pages.forEach(page => {
-        const isActive = page.id === `page-${pageName}`;
-        page.classList.toggle('active', isActive);
+        page.classList.toggle('active', page.id === `page-${pageName}`);
     });
     
-    // Update URL hash
-    if (updateHash) {
-        window.location.hash = pageName;
-    }
-    
-    // Scroll to top
+    if (updateHash) window.location.hash = pageName;
     window.scrollTo(0, 0);
 }
 
@@ -291,60 +279,70 @@ async function fetchData() {
     
     try {
         const response = await fetch(CONFIG.API_ENDPOINT, {
+            method: 'GET',
             headers: {
-                'ngrok-skip-browser-warning': 'true'
-            }
+                'ngrok-skip-browser-warning': 'true',
+                'Accept': 'application/json',
+            },
         });
         
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
-        const jsonResponse = await response.json();
-        const endTime = performance.now();
-        const responseTime = Math.round(endTime - startTime);
+        const json = await response.json();
+        const clientResponseTime = Math.round(performance.now() - startTime);
         
-        // Extract data from response (handle nested structure)
-        const data = jsonResponse.data || jsonResponse;
+        // Handle API structure: { success, data: { ... } }
+        const apiData = json.data || json;
+        const serverResponseTime = apiData.response_time_ms || clientResponseTime;
         
-        state.apiData = data;
-        state.isOnline = jsonResponse.success !== false;
+        state.apiData = apiData;
+        state.isOnline = json.success !== false;
         state.lastUpdated = new Date();
         
-        console.log('📡 API Data received:', data);
+        console.log('📡 Data fetched:', {
+            success: json.success,
+            responseTime: serverResponseTime,
+            hasData: !!apiData
+        });
         
-        updateDashboard(data, responseTime);
-        updateStats(data);
-        updateNowPlaying(data);
-        updateSources(data);
-        updateFilters(data);
+        // Update all sections
+        updateDashboard(apiData, serverResponseTime);
+        updateStats(apiData);
+        updateNowPlaying(apiData);
+        updateSources(apiData);
+        updateFilters(apiData);
         
         if (state.chartsInitialized) {
-            updateCharts(data);
+            updateCharts(apiData, serverResponseTime);
         }
         
     } catch (error) {
-        console.error('❌ Failed to fetch data:', error);
+        console.error('❌ Fetch error:', error.message);
         state.isOnline = false;
         updateOfflineState();
     }
 }
 
 function startAutoRefresh() {
-    if (state.refreshInterval) {
-        clearInterval(state.refreshInterval);
-    }
+    clearInterval(state.refreshInterval);
     state.refreshInterval = setInterval(fetchData, CONFIG.REFRESH_INTERVAL);
 }
 
 // ============================================
-// HELPER: Parse percentage string to number
+// UTILITY: Parse values
 // ============================================
 function parsePercentage(value) {
     if (typeof value === 'number') return value;
     if (typeof value === 'string') {
-        const num = parseFloat(value.replace('%', ''));
-        return isNaN(num) ? 0 : num;
+        return parseFloat(value.replace(/[^0-9.-]/g, '')) || 0;
+    }
+    return 0;
+}
+
+function parseMs(value) {
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') {
+        return parseInt(value.replace(/[^0-9]/g, '')) || 0;
     }
     return 0;
 }
@@ -353,80 +351,63 @@ function parsePercentage(value) {
 // DASHBOARD UPDATES
 // ============================================
 function updateDashboard(data, responseTime) {
-    // Update API status indicator
-    elements.apiStatusIndicator?.classList.remove('offline');
-    const statusText = elements.apiStatusIndicator?.querySelector('.status-text');
-    if (statusText) statusText.textContent = 'API Online';
+    // API Status
+    if (elements.apiStatusIndicator) {
+        elements.apiStatusIndicator.classList.toggle('offline', !state.isOnline);
+        const statusText = elements.apiStatusIndicator.querySelector('.status-text');
+        if (statusText) statusText.textContent = state.isOnline ? 'API Online' : 'API Offline';
+    }
     
-    // Update last updated time
+    // Last Updated
     if (elements.lastUpdated) {
         elements.lastUpdated.textContent = 'Just now';
     }
     
-    // Update status cards
-    if (elements.apiStatus) {
-        elements.apiStatus.textContent = state.isOnline ? 'Online' : 'Offline';
-    }
+    // Status Cards
+    safeSetText(elements.apiStatus, state.isOnline ? 'Online' : 'Offline');
+    safeSetText(elements.responseTime, `${responseTime}ms`);
+    safeSetText(elements.serverVersion, data.server?.version?.semver || 'N/A');
     
-    if (elements.responseTime) {
-        elements.responseTime.textContent = `${data.response_time_ms || responseTime}ms`;
-    }
-    
-    if (elements.serverVersion) {
-        elements.serverVersion.textContent = data.server?.version?.semver || '--';
-    }
-    
-    // Health data
+    // Health
     const health = data.performance?.health || {};
-    if (elements.healthGrade) {
-        elements.healthGrade.textContent = health.grade || '--';
-    }
-    if (elements.healthScore) {
-        elements.healthScore.textContent = health.score !== undefined ? `${health.score}%` : '--%';
-    }
-    if (elements.uptime) {
-        elements.uptime.textContent = data.performance?.uptime?.formatted || '--';
-    }
+    safeSetText(elements.healthGrade, health.grade || 'N/A');
+    safeSetText(elements.healthScore, health.score !== undefined ? `${health.score}%` : 'N/A');
     
-    // Update quick stats - handle audio_stats structure
+    // Uptime
+    safeSetText(elements.uptime, data.performance?.uptime?.formatted || 'N/A');
+    
+    // Quick Stats - Players
     const audioStats = data.audio_stats || {};
     const players = audioStats.players || {};
     const totalPlayers = players.total || 0;
     const playingPlayers = players.playing || 0;
-    const idlePlayers = players.idle !== undefined ? players.idle : (totalPlayers - playingPlayers);
+    const idlePlayers = players.idle ?? (totalPlayers - playingPlayers);
     
-    if (elements.totalPlayers) elements.totalPlayers.textContent = totalPlayers;
-    if (elements.activePlaying) elements.activePlaying.textContent = playingPlayers;
-    if (elements.idlePlayers) elements.idlePlayers.textContent = idlePlayers;
+    safeSetText(elements.totalPlayers, totalPlayers.toString());
+    safeSetText(elements.activePlaying, playingPlayers.toString());
+    safeSetText(elements.idlePlayers, idlePlayers.toString());
     
+    // Progress bars
     const maxPlayers = Math.max(totalPlayers, 10);
-    if (elements.playersBar) {
-        elements.playersBar.style.width = `${(totalPlayers / maxPlayers) * 100}%`;
-    }
-    if (elements.activeBar) {
-        elements.activeBar.style.width = `${totalPlayers > 0 ? (playingPlayers / totalPlayers) * 100 : 0}%`;
-    }
-    if (elements.idleBar) {
-        elements.idleBar.style.width = `${totalPlayers > 0 ? (idlePlayers / totalPlayers) * 100 : 0}%`;
-    }
+    safeSetWidth(elements.playersBar, (totalPlayers / maxPlayers) * 100);
+    safeSetWidth(elements.activeBar, totalPlayers > 0 ? (playingPlayers / totalPlayers) * 100 : 0);
+    safeSetWidth(elements.idleBar, totalPlayers > 0 ? (idlePlayers / totalPlayers) * 100 : 0);
     
-    // Frame analysis
+    // Frame Integrity
     const frameAnalysis = audioStats.frame_analysis || {};
-    const frameIntegrity = parsePercentage(frameAnalysis.integrity);
-    if (elements.frameIntegrity) {
-        elements.frameIntegrity.textContent = `${frameIntegrity.toFixed(0)}%`;
-    }
-    if (elements.frameBar) {
-        elements.frameBar.style.width = `${frameIntegrity}%`;
-    }
+    const integrity = parsePercentage(frameAnalysis.integrity);
+    safeSetText(elements.frameIntegrity, `${integrity.toFixed(0)}%`);
+    safeSetWidth(elements.frameBar, integrity);
 }
 
 function updateOfflineState() {
-    elements.apiStatusIndicator?.classList.add('offline');
-    const statusText = elements.apiStatusIndicator?.querySelector('.status-text');
-    if (statusText) statusText.textContent = 'API Offline';
-    if (elements.apiStatus) elements.apiStatus.textContent = 'Offline';
-    if (elements.responseTime) elements.responseTime.textContent = '--ms';
+    if (elements.apiStatusIndicator) {
+        elements.apiStatusIndicator.classList.add('offline');
+        const statusText = elements.apiStatusIndicator.querySelector('.status-text');
+        if (statusText) statusText.textContent = 'API Offline';
+    }
+    safeSetText(elements.apiStatus, 'Offline');
+    safeSetText(elements.responseTime, '--ms');
 }
 
 // ============================================
@@ -439,66 +420,36 @@ function updateStats(data) {
     const players = audioStats.players || {};
     const frameAnalysis = audioStats.frame_analysis || {};
     
-    // CPU Stats - handle string percentage values
-    if (elements.cpuSystemLoad) {
-        elements.cpuSystemLoad.textContent = cpu.system_load || '--%';
-    }
-    if (elements.cpuLavalinkLoad) {
-        elements.cpuLavalinkLoad.textContent = cpu.lavalink_load || '--%';
-    }
-    if (elements.cpuCores) {
-        elements.cpuCores.textContent = cpu.cores || '--';
-    }
+    // CPU
+    safeSetText(elements.cpuSystemLoad, cpu.system_load || 'N/A');
+    safeSetText(elements.cpuLavalinkLoad, cpu.lavalink_load || 'N/A');
+    safeSetText(elements.cpuCores, cpu.cores?.toString() || 'N/A');
     
-    // Memory Stats - handle nested structure with formatted values
-    if (elements.memUsed) {
-        elements.memUsed.textContent = memory.used?.formatted || '-- MB';
-    }
-    if (elements.memAllocated) {
-        elements.memAllocated.textContent = memory.allocated?.formatted || '-- MB';
-    }
-    if (elements.memFree) {
-        elements.memFree.textContent = memory.free?.formatted || '-- MB';
-    }
-    if (elements.memUsage) {
-        elements.memUsage.textContent = memory.usage_percent || '--%';
-    }
+    // Memory
+    safeSetText(elements.memUsed, memory.used?.formatted || 'N/A');
+    safeSetText(elements.memAllocated, memory.allocated?.formatted || 'N/A');
+    safeSetText(elements.memFree, memory.free?.formatted || 'N/A');
+    safeSetText(elements.memUsage, memory.usage_percent || 'N/A');
     
-    // Players Stats
-    if (elements.statTotalPlayers) {
-        elements.statTotalPlayers.textContent = players.total || '0';
-    }
-    if (elements.statPlayingPlayers) {
-        elements.statPlayingPlayers.textContent = players.playing || '0';
-    }
-    if (elements.statIdlePlayers) {
-        elements.statIdlePlayers.textContent = players.idle !== undefined ? players.idle : '0';
-    }
+    // Players
+    safeSetText(elements.statTotalPlayers, players.total?.toString() || '0');
+    safeSetText(elements.statPlayingPlayers, players.playing?.toString() || '0');
+    safeSetText(elements.statIdlePlayers, (players.idle ?? 0).toString());
     
-    // Frame Stats
-    if (elements.statFrameIntegrity) {
-        elements.statFrameIntegrity.textContent = frameAnalysis.integrity || '--%';
-    }
-    if (elements.statFrameStatus) {
-        elements.statFrameStatus.textContent = frameAnalysis.status || '--';
-    }
-    if (elements.statFrameSent) {
-        elements.statFrameSent.textContent = frameAnalysis.raw?.sent || '--';
-    }
-    if (elements.statFrameExpected) {
-        elements.statFrameExpected.textContent = frameAnalysis.raw?.expected || '--';
-    }
+    // Frames
+    safeSetText(elements.statFrameIntegrity, frameAnalysis.integrity || 'N/A');
+    safeSetText(elements.statFrameStatus, frameAnalysis.status || 'N/A');
+    safeSetText(elements.statFrameSent, frameAnalysis.raw?.sent?.toString() || 'N/A');
+    safeSetText(elements.statFrameExpected, frameAnalysis.raw?.expected?.toString() || 'N/A');
 }
 
 // ============================================
-// NOW PLAYING UPDATES
+// NOW PLAYING
 // ============================================
 function updateNowPlaying(data) {
     const nowPlaying = data.now_playing || [];
     
-    if (elements.playingCount) {
-        elements.playingCount.textContent = `${nowPlaying.length} track${nowPlaying.length !== 1 ? 's' : ''}`;
-    }
+    safeSetText(elements.playingCount, `${nowPlaying.length} track${nowPlaying.length !== 1 ? 's' : ''}`);
     
     if (!elements.nowPlayingContainer) return;
     
@@ -512,34 +463,34 @@ function updateNowPlaying(data) {
         return;
     }
     
-    elements.nowPlayingContainer.innerHTML = nowPlaying.map(track => createNowPlayingCard(track)).join('');
+    elements.nowPlayingContainer.innerHTML = nowPlaying.map(createNowPlayingCard).join('');
 }
 
 function createNowPlayingCard(track) {
-    // Handle new API structure
     const metadata = track.metadata || {};
-    const playbackState = track.playback_state || {};
-    const position = playbackState.position?.raw || 0;
-    const duration = playbackState.duration?.raw || 0;
-    
-    const progress = duration > 0 ? (position / duration) * 100 : 0;
-    const currentTime = playbackState.position?.stamp || formatDuration(position);
-    const totalTime = playbackState.duration?.stamp || formatDuration(duration);
-    const sourceIcon = getSourceIcon(metadata.source);
+    const playback = track.playback_state || {};
     
     const title = metadata.title || 'Unknown Title';
     const author = metadata.author || 'Unknown Artist';
     const artwork = metadata.artwork_url || 'https://via.placeholder.com/80/1a1a25/6366f1?text=♪';
-    const source = metadata.source || 'Unknown';
-    const ping = playbackState.ping || '--';
-    const connected = playbackState.connected !== false;
+    const source = metadata.source || 'unknown';
+    
+    const position = playback.position?.raw || 0;
+    const duration = playback.duration?.raw || 1;
+    const progress = Math.min((position / duration) * 100, 100);
+    
+    const currentTime = playback.position?.stamp || '00:00:00';
+    const totalTime = playback.duration?.stamp || '00:00:00';
+    const ping = playback.ping || 'N/A';
+    const connected = playback.connected !== false;
     const guildId = track.guild_id || '';
     
     return `
         <div class="now-playing-card">
             <div class="np-header">
                 <div class="np-artwork">
-                    <img src="${artwork}" alt="Album Art" onerror="this.src='https://via.placeholder.com/80/1a1a25/6366f1?text=♪'">
+                    <img src="${escapeHtml(artwork)}" alt="Artwork" 
+                         onerror="this.src='https://via.placeholder.com/80/1a1a25/6366f1?text=♪'">
                     <div class="np-playing-indicator">
                         <i class="fas fa-play"></i>
                     </div>
@@ -548,8 +499,8 @@ function createNowPlayingCard(track) {
                     <h4 class="np-title" title="${escapeHtml(title)}">${escapeHtml(title)}</h4>
                     <p class="np-artist" title="${escapeHtml(author)}">${escapeHtml(author)}</p>
                     <span class="np-source">
-                        <i class="${sourceIcon}"></i>
-                        ${capitalizeFirst(source)}
+                        <i class="${getSourceIcon(source)}"></i>
+                        ${capitalize(source)}
                     </span>
                 </div>
             </div>
@@ -558,8 +509,8 @@ function createNowPlayingCard(track) {
                     <div class="progress-fill" style="width: ${progress}%"></div>
                 </div>
                 <div class="progress-time">
-                    <span>${currentTime}</span>
-                    <span>${totalTime}</span>
+                    <span>${formatTimestamp(currentTime)}</span>
+                    <span>${formatTimestamp(totalTime)}</span>
                 </div>
             </div>
             <div class="np-footer">
@@ -570,7 +521,7 @@ function createNowPlayingCard(track) {
                     </span>
                     <span class="np-stat">
                         <i class="fas fa-server"></i>
-                        ${guildId ? `Guild ...${guildId.slice(-4)}` : '--'}
+                        ${guildId ? `...${guildId.slice(-6)}` : 'N/A'}
                     </span>
                 </div>
                 <span class="np-status ${connected ? 'connected' : 'disconnected'}">
@@ -586,9 +537,12 @@ function createNowPlayingCard(track) {
 // SOURCES PAGE
 // ============================================
 function updateSources(data) {
+    if (!elements.sourcesGrid) return;
+    
+    // Get sources from correct path
     const sources = data.server?.capabilities?.sources || [];
     
-    if (!elements.sourcesGrid) return;
+    console.log('📦 Sources found:', sources.length);
     
     if (sources.length === 0) {
         elements.sourcesGrid.innerHTML = `
@@ -600,81 +554,105 @@ function updateSources(data) {
         return;
     }
     
-    elements.sourcesGrid.innerHTML = sources.map(source => createSourceCard(source)).join('');
-}
-
-function createSourceCard(source) {
-    const sourceInfo = getSourceInfo(source);
+    // Sort alphabetically
+    const sortedSources = [...sources].sort((a, b) => a.localeCompare(b));
     
-    return `
-        <div class="source-card">
-            <div class="source-icon ${sourceInfo.class}">
-                <i class="${sourceInfo.icon}"></i>
+    elements.sourcesGrid.innerHTML = sortedSources.map(source => {
+        const info = getSourceInfo(source);
+        return `
+            <div class="source-card">
+                <div class="source-icon ${info.class}">
+                    <i class="${info.icon}"></i>
+                </div>
+                <div class="source-info">
+                    <h4 class="source-name">${escapeHtml(info.name)}</h4>
+                    <p class="source-status">Available</p>
+                </div>
+                <div class="source-toggle active"></div>
             </div>
-            <div class="source-info">
-                <h4 class="source-name">${sourceInfo.name}</h4>
-                <p class="source-status">Available</p>
-            </div>
-            <div class="source-toggle active"></div>
-        </div>
-    `;
+        `;
+    }).join('');
+    
+    state.sourcesLoaded = true;
 }
 
 function getSourceInfo(source) {
-    const sources = {
+    const sourceMap = {
+        // Major platforms
         youtube: { name: 'YouTube', icon: 'fab fa-youtube', class: 'youtube' },
         spotify: { name: 'Spotify', icon: 'fab fa-spotify', class: 'spotify' },
         soundcloud: { name: 'SoundCloud', icon: 'fab fa-soundcloud', class: 'soundcloud' },
-        twitch: { name: 'Twitch', icon: 'fab fa-twitch', class: 'twitch' },
-        bandcamp: { name: 'Bandcamp', icon: 'fab fa-bandcamp', class: 'bandcamp' },
-        vimeo: { name: 'Vimeo', icon: 'fab fa-vimeo', class: 'vimeo' },
-        deezer: { name: 'Deezer', icon: 'fab fa-deezer', class: 'deezer' },
+        deezer: { name: 'Deezer', icon: 'fas fa-compact-disc', class: 'deezer' },
         applemusic: { name: 'Apple Music', icon: 'fab fa-apple', class: 'applemusic' },
         tidal: { name: 'Tidal', icon: 'fas fa-water', class: 'tidal' },
         amazonmusic: { name: 'Amazon Music', icon: 'fab fa-amazon', class: 'amazon' },
+        pandora: { name: 'Pandora', icon: 'fas fa-podcast', class: 'default' },
+        qobuz: { name: 'Qobuz', icon: 'fas fa-headphones', class: 'default' },
+        
+        // Video platforms
+        twitch: { name: 'Twitch', icon: 'fab fa-twitch', class: 'twitch' },
+        vimeo: { name: 'Vimeo', icon: 'fab fa-vimeo-v', class: 'vimeo' },
+        bilibili: { name: 'Bilibili', icon: 'fas fa-tv', class: 'default' },
+        nicovideo: { name: 'Niconico', icon: 'fas fa-play-circle', class: 'default' },
+        
+        // Social media
         instagram: { name: 'Instagram', icon: 'fab fa-instagram', class: 'instagram' },
         twitter: { name: 'Twitter/X', icon: 'fab fa-twitter', class: 'twitter' },
-        reddit: { name: 'Reddit', icon: 'fab fa-reddit', class: 'reddit' },
-        telegram: { name: 'Telegram', icon: 'fab fa-telegram', class: 'telegram' },
-        mixcloud: { name: 'Mixcloud', icon: 'fab fa-mixcloud', class: 'mixcloud' },
-        audiomack: { name: 'Audiomack', icon: 'fas fa-headphones', class: 'default' },
-        pandora: { name: 'Pandora', icon: 'fas fa-music', class: 'default' },
-        nicovideo: { name: 'Niconico', icon: 'fas fa-tv', class: 'default' },
-        bilibili: { name: 'Bilibili', icon: 'fas fa-tv', class: 'default' },
-        yandexmusic: { name: 'Yandex Music', icon: 'fas fa-music', class: 'default' },
-        qobuz: { name: 'Qobuz', icon: 'fas fa-compact-disc', class: 'default' },
-        genius: { name: 'Genius', icon: 'fas fa-microphone', class: 'default' },
-        pinterest: { name: 'Pinterest', icon: 'fab fa-pinterest', class: 'default' },
+        reddit: { name: 'Reddit', icon: 'fab fa-reddit-alien', class: 'reddit' },
         tumblr: { name: 'Tumblr', icon: 'fab fa-tumblr', class: 'default' },
+        pinterest: { name: 'Pinterest', icon: 'fab fa-pinterest', class: 'default' },
+        telegram: { name: 'Telegram', icon: 'fab fa-telegram', class: 'telegram' },
+        bluesky: { name: 'Bluesky', icon: 'fas fa-cloud', class: 'default' },
+        kwai: { name: 'Kwai', icon: 'fas fa-video', class: 'default' },
+        
+        // Music platforms
+        bandcamp: { name: 'Bandcamp', icon: 'fab fa-bandcamp', class: 'bandcamp' },
+        mixcloud: { name: 'Mixcloud', icon: 'fab fa-mixcloud', class: 'mixcloud' },
+        audiomack: { name: 'Audiomack', icon: 'fas fa-headphones-alt', class: 'default' },
+        audius: { name: 'Audius', icon: 'fas fa-wave-square', class: 'default' },
+        
+        // Regional
+        yandexmusic: { name: 'Yandex Music', icon: 'fab fa-yandex', class: 'default' },
         vkmusic: { name: 'VK Music', icon: 'fab fa-vk', class: 'default' },
-        http: { name: 'HTTP Stream', icon: 'fas fa-globe', class: 'http' },
-        local: { name: 'Local Files', icon: 'fas fa-folder', class: 'default' },
-        lastfm: { name: 'Last.fm', icon: 'fab fa-lastfm', class: 'default' },
-        shazam: { name: 'Shazam', icon: 'fas fa-music', class: 'default' },
         jiosaavn: { name: 'JioSaavn', icon: 'fas fa-music', class: 'default' },
         gaana: { name: 'Gaana', icon: 'fas fa-music', class: 'default' },
-        audius: { name: 'Audius', icon: 'fas fa-music', class: 'default' },
-        flowery: { name: 'Flowery TTS', icon: 'fas fa-comment', class: 'default' },
+        
+        // Utility
+        genius: { name: 'Genius', icon: 'fas fa-microphone-alt', class: 'default' },
+        lastfm: { name: 'Last.fm', icon: 'fab fa-lastfm', class: 'default' },
+        shazam: { name: 'Shazam', icon: 'fas fa-bolt', class: 'default' },
+        letrasmus: { name: 'Letras', icon: 'fas fa-align-left', class: 'default' },
+        
+        // TTS
+        flowery: { name: 'Flowery TTS', icon: 'fas fa-comment-dots', class: 'default' },
         'google-tts': { name: 'Google TTS', icon: 'fab fa-google', class: 'default' },
-        kwai: { name: 'Kwai', icon: 'fas fa-video', class: 'default' },
-        bluesky: { name: 'Bluesky', icon: 'fas fa-cloud', class: 'default' },
-        rss: { name: 'RSS Feed', icon: 'fas fa-rss', class: 'default' },
+        
+        // Other
+        http: { name: 'HTTP Streams', icon: 'fas fa-globe', class: 'http' },
+        local: { name: 'Local Files', icon: 'fas fa-folder-open', class: 'default' },
+        rss: { name: 'RSS Feeds', icon: 'fas fa-rss', class: 'default' },
         songlink: { name: 'Songlink', icon: 'fas fa-link', class: 'default' },
         eternalbox: { name: 'Eternal Box', icon: 'fas fa-infinity', class: 'default' },
-        letrasmus: { name: 'Letras', icon: 'fas fa-file-alt', class: 'default' },
     };
     
-    const key = source.toLowerCase();
-    return sources[key] || { name: capitalizeFirst(source), icon: 'fas fa-music', class: 'default' };
+    const key = source.toLowerCase().replace(/[-_\s]/g, '');
+    return sourceMap[key] || {
+        name: capitalize(source.replace(/[-_]/g, ' ')),
+        icon: 'fas fa-music',
+        class: 'default'
+    };
 }
 
 // ============================================
 // FILTERS PAGE
 // ============================================
 function updateFilters(data) {
+    if (!elements.filtersGrid) return;
+    
+    // Get filters from correct path
     const filters = data.server?.capabilities?.filters || [];
     
-    if (!elements.filtersGrid) return;
+    console.log('🎛️ Filters found:', filters.length);
     
     if (filters.length === 0) {
         elements.filtersGrid.innerHTML = `
@@ -686,84 +664,88 @@ function updateFilters(data) {
         return;
     }
     
-    elements.filtersGrid.innerHTML = filters.map(filter => createFilterCard(filter)).join('');
+    // Sort alphabetically
+    const sortedFilters = [...filters].sort((a, b) => a.localeCompare(b));
     
-    // Initialize filter toggles
-    initFilterToggles();
-}
-
-function createFilterCard(filter) {
-    const filterInfo = getFilterInfo(filter);
-    
-    return `
-        <div class="filter-card" data-filter="${filter}">
-            <div class="filter-header">
-                <span class="filter-name">${filterInfo.name}</span>
-                <div class="filter-toggle" data-filter="${filter}"></div>
-            </div>
-            <p class="filter-description">${filterInfo.description}</p>
-            ${filterInfo.hasSlider ? `
-                <div class="filter-slider">
-                    <div class="slider-label">
-                        <span>Intensity</span>
-                        <span class="slider-value">50%</span>
-                    </div>
-                    <input type="range" class="slider-input" min="0" max="100" value="50">
+    elements.filtersGrid.innerHTML = sortedFilters.map(filter => {
+        const info = getFilterInfo(filter);
+        return `
+            <div class="filter-card" data-filter="${escapeHtml(filter)}">
+                <div class="filter-header">
+                    <span class="filter-name">${escapeHtml(info.name)}</span>
+                    <div class="filter-toggle" data-filter="${escapeHtml(filter)}"></div>
                 </div>
-            ` : ''}
-        </div>
-    `;
+                <p class="filter-description">${escapeHtml(info.description)}</p>
+                ${info.hasSlider ? `
+                    <div class="filter-slider">
+                        <div class="slider-label">
+                            <span>Intensity</span>
+                            <span class="slider-value">50%</span>
+                        </div>
+                        <input type="range" class="slider-input" min="0" max="100" value="50">
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }).join('');
+    
+    // Initialize interactions
+    initFilterInteractions();
+    state.filtersLoaded = true;
 }
 
 function getFilterInfo(filter) {
-    const filters = {
-        karaoke: { name: 'Karaoke', description: 'Remove vocals from the track', hasSlider: true },
-        timescale: { name: 'Timescale', description: 'Adjust playback speed and pitch', hasSlider: true },
-        tremolo: { name: 'Tremolo', description: 'Add trembling effect to audio', hasSlider: true },
+    const filterMap = {
+        tremolo: { name: 'Tremolo', description: 'Add trembling amplitude effect', hasSlider: true },
         vibrato: { name: 'Vibrato', description: 'Add vibrating pitch effect', hasSlider: true },
-        rotation: { name: 'Rotation', description: 'Rotate audio around stereo field', hasSlider: true },
+        lowpass: { name: 'Low Pass', description: 'Filter out high frequencies', hasSlider: true },
+        highpass: { name: 'High Pass', description: 'Filter out low frequencies', hasSlider: true },
+        rotation: { name: 'Rotation', description: 'Rotate audio in stereo field', hasSlider: true },
+        karaoke: { name: 'Karaoke', description: 'Remove vocals from track', hasSlider: true },
         distortion: { name: 'Distortion', description: 'Add distortion effect', hasSlider: true },
-        channelmix: { name: 'Channel Mix', description: 'Mix left and right channels', hasSlider: false },
-        channelMix: { name: 'Channel Mix', description: 'Mix left and right channels', hasSlider: false },
-        lowpass: { name: 'Low Pass', description: 'Filter high frequencies', hasSlider: true },
-        highpass: { name: 'High Pass', description: 'Filter low frequencies', hasSlider: true },
-        bassboost: { name: 'Bass Boost', description: 'Enhance bass frequencies', hasSlider: true },
-        nightcore: { name: 'Nightcore', description: 'Speed up with higher pitch', hasSlider: false },
-        vaporwave: { name: 'Vaporwave', description: 'Slow down with lower pitch', hasSlider: false },
-        '8d': { name: '8D Audio', description: 'Rotating spatial audio effect', hasSlider: false },
-        echo: { name: 'Echo', description: 'Add echo effect', hasSlider: true },
+        channelmix: { name: 'Channel Mix', description: 'Mix stereo channels', hasSlider: false },
+        channelMix: { name: 'Channel Mix', description: 'Mix stereo channels', hasSlider: false },
         equalizer: { name: 'Equalizer', description: 'Adjust frequency bands', hasSlider: true },
         chorus: { name: 'Chorus', description: 'Add chorus effect', hasSlider: true },
         compressor: { name: 'Compressor', description: 'Dynamic range compression', hasSlider: true },
+        echo: { name: 'Echo', description: 'Add echo/delay effect', hasSlider: true },
         phaser: { name: 'Phaser', description: 'Add phaser sweep effect', hasSlider: true },
+        timescale: { name: 'Timescale', description: 'Adjust speed and pitch', hasSlider: true },
+        bassboost: { name: 'Bass Boost', description: 'Enhance bass frequencies', hasSlider: true },
+        nightcore: { name: 'Nightcore', description: 'Speed up with higher pitch', hasSlider: false },
+        vaporwave: { name: 'Vaporwave', description: 'Slow down with lower pitch', hasSlider: false },
+        '8d': { name: '8D Audio', description: 'Rotating spatial audio', hasSlider: false },
     };
     
     const key = filter.toLowerCase();
-    return filters[key] || { name: capitalizeFirst(filter), description: 'Audio filter', hasSlider: false };
+    return filterMap[key] || {
+        name: capitalize(filter.replace(/[-_]/g, ' ')),
+        description: 'Audio processing filter',
+        hasSlider: false
+    };
 }
 
-function initFilterToggles() {
+function initFilterInteractions() {
+    // Toggle buttons
     document.querySelectorAll('.filter-toggle').forEach(toggle => {
         toggle.addEventListener('click', function() {
             this.classList.toggle('active');
-            const filterName = this.dataset.filter;
-            const isActive = this.classList.contains('active');
+            const name = this.dataset.filter;
+            const active = this.classList.contains('active');
             
             showToast(
-                isActive ? 'Filter Enabled' : 'Filter Disabled',
-                `${capitalizeFirst(filterName)} has been ${isActive ? 'enabled' : 'disabled'}`,
-                isActive ? 'success' : 'info'
+                active ? 'Filter Enabled' : 'Filter Disabled',
+                `${capitalize(name)} has been ${active ? 'enabled' : 'disabled'}`,
+                active ? 'success' : 'info'
             );
         });
     });
     
-    // Initialize slider value display
+    // Sliders
     document.querySelectorAll('.slider-input').forEach(slider => {
         slider.addEventListener('input', function() {
-            const valueDisplay = this.closest('.filter-slider').querySelector('.slider-value');
-            if (valueDisplay) {
-                valueDisplay.textContent = `${this.value}%`;
-            }
+            const label = this.closest('.filter-slider')?.querySelector('.slider-value');
+            if (label) label.textContent = `${this.value}%`;
         });
     });
 }
@@ -773,81 +755,73 @@ function initFilterToggles() {
 // ============================================
 function initCharts() {
     if (typeof Chart === 'undefined') {
-        console.warn('Chart.js not available');
+        console.warn('Chart.js not loaded');
         return;
     }
     
     const colors = getChartColors();
     
-    const defaultOptions = {
+    const lineOptions = {
         responsive: true,
         maintainAspectRatio: false,
-        animation: {
-            duration: 300,
-        },
+        animation: { duration: 300 },
         plugins: {
-            legend: {
-                display: false,
-            },
+            legend: { display: false },
             tooltip: {
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                titleColor: '#fff',
-                bodyColor: '#a0a0b0',
-                borderColor: 'rgba(255, 255, 255, 0.1)',
-                borderWidth: 1,
+                backgroundColor: 'rgba(0,0,0,0.8)',
                 cornerRadius: 8,
                 padding: 12,
+            },
+        },
+        scales: {
+            x: { display: false },
+            y: {
+                display: true,
+                min: 0,
+                grid: { color: colors.grid, drawBorder: false },
+                ticks: { color: colors.text, font: { size: 11 } },
             },
         },
     };
     
     // CPU Chart
-    const cpuCtx = document.getElementById('cpuChart')?.getContext('2d');
-    if (cpuCtx) {
-        state.charts.cpu = new Chart(cpuCtx, {
+    const cpuCanvas = document.getElementById('cpuChart');
+    if (cpuCanvas) {
+        state.charts.cpu = new Chart(cpuCanvas.getContext('2d'), {
             type: 'line',
             data: {
                 labels: Array(CONFIG.CHART_HISTORY_LENGTH).fill(''),
-                datasets: [{
-                    label: 'System Load',
-                    data: Array(CONFIG.CHART_HISTORY_LENGTH).fill(0),
-                    borderColor: colors.primary,
-                    backgroundColor: colors.primaryLight,
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 0,
-                    borderWidth: 2,
-                }, {
-                    label: 'Lavalink Load',
-                    data: Array(CONFIG.CHART_HISTORY_LENGTH).fill(0),
-                    borderColor: colors.info,
-                    backgroundColor: colors.infoLight,
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 0,
-                    borderWidth: 2,
-                }],
-            },
-            options: {
-                ...defaultOptions,
-                scales: {
-                    x: { display: false },
-                    y: {
-                        display: true,
-                        min: 0,
-                        max: 100,
-                        grid: { color: colors.grid, drawBorder: false },
-                        ticks: { color: colors.text, font: { size: 11 } },
+                datasets: [
+                    {
+                        label: 'System Load',
+                        data: Array(CONFIG.CHART_HISTORY_LENGTH).fill(0),
+                        borderColor: colors.primary,
+                        backgroundColor: colors.primaryLight,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        borderWidth: 2,
                     },
-                },
+                    {
+                        label: 'Lavalink Load',
+                        data: Array(CONFIG.CHART_HISTORY_LENGTH).fill(0),
+                        borderColor: colors.info,
+                        backgroundColor: colors.infoLight,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        borderWidth: 2,
+                    },
+                ],
             },
+            options: { ...lineOptions, scales: { ...lineOptions.scales, y: { ...lineOptions.scales.y, max: 100 } } },
         });
     }
     
-    // Memory Chart
-    const memoryCtx = document.getElementById('memoryChart')?.getContext('2d');
-    if (memoryCtx) {
-        state.charts.memory = new Chart(memoryCtx, {
+    // Memory Chart (Doughnut)
+    const memCanvas = document.getElementById('memoryChart');
+    if (memCanvas) {
+        state.charts.memory = new Chart(memCanvas.getContext('2d'), {
             type: 'doughnut',
             data: {
                 labels: ['Used', 'Free'],
@@ -859,26 +833,18 @@ function initCharts() {
                 }],
             },
             options: {
-                ...defaultOptions,
-                plugins: {
-                    ...defaultOptions.plugins,
-                    tooltip: {
-                        ...defaultOptions.plugins.tooltip,
-                        callbacks: {
-                            label: function(context) {
-                                return `${context.label}: ${context.raw.toFixed(1)}%`;
-                            },
-                        },
-                    },
-                },
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 300 },
+                plugins: { legend: { display: false } },
             },
         });
     }
     
-    // Players Chart
-    const playersCtx = document.getElementById('playersChart')?.getContext('2d');
-    if (playersCtx) {
-        state.charts.players = new Chart(playersCtx, {
+    // Players Chart (Bar)
+    const playersCanvas = document.getElementById('playersChart');
+    if (playersCanvas) {
+        state.charts.players = new Chart(playersCanvas.getContext('2d'), {
             type: 'bar',
             data: {
                 labels: ['Total', 'Playing', 'Idle'],
@@ -886,32 +852,25 @@ function initCharts() {
                     data: [0, 0, 0],
                     backgroundColor: [colors.primary, colors.success, colors.warning],
                     borderRadius: 8,
-                    borderSkipped: false,
                 }],
             },
             options: {
-                ...defaultOptions,
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 300 },
+                plugins: { legend: { display: false } },
                 scales: {
-                    x: {
-                        display: true,
-                        grid: { display: false },
-                        ticks: { color: colors.text },
-                    },
-                    y: {
-                        display: true,
-                        beginAtZero: true,
-                        grid: { color: colors.grid, drawBorder: false },
-                        ticks: { color: colors.text, font: { size: 11 } },
-                    },
+                    x: { grid: { display: false }, ticks: { color: colors.text } },
+                    y: { beginAtZero: true, grid: { color: colors.grid }, ticks: { color: colors.text } },
                 },
             },
         });
     }
     
     // Frame Chart
-    const frameCtx = document.getElementById('frameChart')?.getContext('2d');
-    if (frameCtx) {
-        state.charts.frame = new Chart(frameCtx, {
+    const frameCanvas = document.getElementById('frameChart');
+    if (frameCanvas) {
+        state.charts.frame = new Chart(frameCanvas.getContext('2d'), {
             type: 'line',
             data: {
                 labels: Array(CONFIG.CHART_HISTORY_LENGTH).fill(''),
@@ -926,26 +885,14 @@ function initCharts() {
                     borderWidth: 2,
                 }],
             },
-            options: {
-                ...defaultOptions,
-                scales: {
-                    x: { display: false },
-                    y: {
-                        display: true,
-                        min: 0,
-                        max: 100,
-                        grid: { color: colors.grid, drawBorder: false },
-                        ticks: { color: colors.text, font: { size: 11 } },
-                    },
-                },
-            },
+            options: { ...lineOptions, scales: { ...lineOptions.scales, y: { ...lineOptions.scales.y, max: 100 } } },
         });
     }
     
-    // Uptime/Response Time Chart
-    const uptimeCtx = document.getElementById('uptimeChart')?.getContext('2d');
-    if (uptimeCtx) {
-        state.charts.uptime = new Chart(uptimeCtx, {
+    // Response Time Chart
+    const uptimeCanvas = document.getElementById('uptimeChart');
+    if (uptimeCanvas) {
+        state.charts.uptime = new Chart(uptimeCanvas.getContext('2d'), {
             type: 'line',
             data: {
                 labels: Array(CONFIG.CHART_HISTORY_LENGTH).fill(''),
@@ -956,32 +903,22 @@ function initCharts() {
                     backgroundColor: colors.primaryLight,
                     fill: true,
                     tension: 0.4,
-                    pointRadius: 2,
-                    pointHoverRadius: 6,
+                    pointRadius: 3,
                     borderWidth: 2,
                 }],
             },
             options: {
-                ...defaultOptions,
+                ...lineOptions,
                 scales: {
-                    x: {
-                        display: true,
-                        grid: { color: colors.grid },
-                        ticks: { color: colors.text, maxTicksLimit: 10 },
-                    },
-                    y: {
-                        display: true,
-                        beginAtZero: true,
-                        grid: { color: colors.grid, drawBorder: false },
-                        ticks: { color: colors.text, font: { size: 11 } },
-                    },
+                    x: { display: true, grid: { color: colors.grid }, ticks: { color: colors.text, maxTicksLimit: 8 } },
+                    y: { ...lineOptions.scales.y, beginAtZero: true },
                 },
             },
         });
     }
 }
 
-function updateCharts(data) {
+function updateCharts(data, responseTime) {
     if (!state.chartsInitialized) return;
     
     const cpu = data.performance?.cpu || {};
@@ -990,125 +927,112 @@ function updateCharts(data) {
     const players = audioStats.players || {};
     const frameAnalysis = audioStats.frame_analysis || {};
     
-    // Update CPU Chart
+    // CPU Chart
     if (state.charts.cpu) {
-        const systemLoad = Math.min(parsePercentage(cpu.system_load), 100);
-        const lavalinkLoad = Math.min(parsePercentage(cpu.lavalink_load), 100);
+        const sysLoad = Math.min(parsePercentage(cpu.system_load), 100);
+        const lavaLoad = Math.min(parsePercentage(cpu.lavalink_load), 100);
         
-        state.charts.cpu.data.datasets[0].data.push(systemLoad);
-        state.charts.cpu.data.datasets[0].data.shift();
-        state.charts.cpu.data.datasets[1].data.push(lavalinkLoad);
-        state.charts.cpu.data.datasets[1].data.shift();
+        pushChartData(state.charts.cpu.data.datasets[0].data, sysLoad);
+        pushChartData(state.charts.cpu.data.datasets[1].data, lavaLoad);
         state.charts.cpu.update('none');
     }
     
-    // Update Memory Chart
+    // Memory Chart
     if (state.charts.memory) {
-        const usagePercent = parsePercentage(memory.usage_percent);
-        state.charts.memory.data.datasets[0].data = [usagePercent, 100 - usagePercent];
+        const usage = parsePercentage(memory.usage_percent);
+        state.charts.memory.data.datasets[0].data = [usage, 100 - usage];
         state.charts.memory.update('none');
     }
     
-    // Update Players Chart
+    // Players Chart
     if (state.charts.players) {
         const total = players.total || 0;
         const playing = players.playing || 0;
-        const idle = players.idle !== undefined ? players.idle : (total - playing);
-        
+        const idle = players.idle ?? (total - playing);
         state.charts.players.data.datasets[0].data = [total, playing, idle];
         state.charts.players.update('none');
     }
     
-    // Update Frame Chart
+    // Frame Chart
     if (state.charts.frame) {
         const integrity = parsePercentage(frameAnalysis.integrity);
-        
-        state.charts.frame.data.datasets[0].data.push(integrity);
-        state.charts.frame.data.datasets[0].data.shift();
+        pushChartData(state.charts.frame.data.datasets[0].data, integrity);
         state.charts.frame.update('none');
     }
     
-    // Update Uptime/Response Chart
+    // Response Time Chart
     if (state.charts.uptime) {
-        const responseTime = data.response_time_ms || 0;
         const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        
-        state.charts.uptime.data.labels.push(time);
-        state.charts.uptime.data.labels.shift();
-        state.charts.uptime.data.datasets[0].data.push(responseTime);
-        state.charts.uptime.data.datasets[0].data.shift();
+        pushChartData(state.charts.uptime.data.labels, time);
+        pushChartData(state.charts.uptime.data.datasets[0].data, responseTime);
         state.charts.uptime.update('none');
     }
 }
 
+function pushChartData(arr, value) {
+    arr.push(value);
+    if (arr.length > CONFIG.CHART_HISTORY_LENGTH) arr.shift();
+}
+
 function updateChartsTheme() {
-    if (!state.chartsInitialized) return;
-    
     const colors = getChartColors();
     
     Object.values(state.charts).forEach(chart => {
-        if (chart && chart.options) {
-            if (chart.options.scales?.y) {
-                chart.options.scales.y.grid.color = colors.grid;
-                chart.options.scales.y.ticks.color = colors.text;
-            }
-            if (chart.options.scales?.x) {
-                if (chart.options.scales.x.grid) {
-                    chart.options.scales.x.grid.color = colors.grid;
+        if (!chart?.options?.scales) return;
+        
+        ['x', 'y'].forEach(axis => {
+            if (chart.options.scales[axis]) {
+                if (chart.options.scales[axis].grid) {
+                    chart.options.scales[axis].grid.color = colors.grid;
                 }
-                if (chart.options.scales.x.ticks) {
-                    chart.options.scales.x.ticks.color = colors.text;
+                if (chart.options.scales[axis].ticks) {
+                    chart.options.scales[axis].ticks.color = colors.text;
                 }
             }
-            chart.update('none');
-        }
+        });
+        chart.update('none');
     });
 }
 
 // ============================================
-// COMMANDS PAGE
+// COMMANDS
 // ============================================
 function initCommands() {
-    // Search functionality
     elements.commandSearch?.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase();
+        const query = e.target.value.toLowerCase().trim();
         filterCommands(query);
     });
     
-    // Copy buttons
     document.querySelectorAll('.copy-btn').forEach(btn => {
         btn.addEventListener('click', function() {
-            const command = this.dataset.command;
-            copyToClipboard(command);
+            const cmd = this.dataset.command;
+            copyToClipboard(cmd);
             
-            this.classList.add('copied');
             this.innerHTML = '<i class="fas fa-check"></i>';
+            this.classList.add('copied');
             
             setTimeout(() => {
-                this.classList.remove('copied');
                 this.innerHTML = '<i class="fas fa-copy"></i>';
+                this.classList.remove('copied');
             }, 2000);
         });
     });
 }
 
 function filterCommands(query) {
-    const categories = document.querySelectorAll('.command-category');
-    
-    categories.forEach(category => {
-        const items = category.querySelectorAll('.command-item');
-        let hasVisibleItems = false;
+    document.querySelectorAll('.command-category').forEach(category => {
+        let visible = false;
         
-        items.forEach(item => {
+        category.querySelectorAll('.command-item').forEach(item => {
             const code = item.querySelector('code')?.textContent.toLowerCase() || '';
             const desc = item.querySelector('p')?.textContent.toLowerCase() || '';
-            const matches = code.includes(query) || desc.includes(query);
+            const match = !query || code.includes(query) || desc.includes(query);
             
-            item.style.display = matches ? 'flex' : 'none';
-            if (matches) hasVisibleItems = true;
+            item.style.display = match ? '' : 'none';
+            if (match) visible = true;
         });
         
-        category.style.display = hasVisibleItems ? 'block' : 'none';
+        category.style.display = visible ? '' : 'none';
     });
 }
 
@@ -1116,20 +1040,14 @@ function filterCommands(query) {
 // FAQ
 // ============================================
 function initFAQ() {
-    document.querySelectorAll('.faq-question').forEach(question => {
-        question.addEventListener('click', function() {
-            const faqItem = this.closest('.faq-item');
-            const isActive = faqItem.classList.contains('active');
+    document.querySelectorAll('.faq-question').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const item = this.closest('.faq-item');
+            const wasActive = item.classList.contains('active');
             
-            // Close all other FAQs
-            document.querySelectorAll('.faq-item').forEach(item => {
-                item.classList.remove('active');
-            });
+            document.querySelectorAll('.faq-item.active').forEach(i => i.classList.remove('active'));
             
-            // Toggle current FAQ
-            if (!isActive) {
-                faqItem.classList.add('active');
-            }
+            if (!wasActive) item.classList.add('active');
         });
     });
 }
@@ -1141,42 +1059,20 @@ function initFeedbackForm() {
     elements.feedbackForm?.addEventListener('submit', async (e) => {
         e.preventDefault();
         
-        const formData = {
-            username: document.getElementById('feedbackUsername')?.value,
-            email: document.getElementById('feedbackEmail')?.value,
-            type: document.getElementById('feedbackType')?.value,
-            message: document.getElementById('feedbackMessage')?.value,
-            contactConsent: document.getElementById('feedbackContact')?.checked,
-        };
+        const btn = e.target.querySelector('.submit-btn');
+        const originalHTML = btn.innerHTML;
         
-        // Simulate form submission
-        const submitBtn = elements.feedbackForm.querySelector('.submit-btn');
-        const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-        submitBtn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+        btn.disabled = true;
         
-        try {
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            
-            showToast(
-                'Feedback Sent!',
-                'Thank you for your feedback. We\'ll review it shortly.',
-                'success'
-            );
-            
-            elements.feedbackForm.reset();
-            
-        } catch (error) {
-            showToast(
-                'Error',
-                'Failed to send feedback. Please try again.',
-                'error'
-            );
-        } finally {
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-        }
+        // Simulate API call
+        await new Promise(r => setTimeout(r, 1500));
+        
+        showToast('Feedback Sent!', 'Thank you for your feedback.', 'success');
+        e.target.reset();
+        
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
     });
 }
 
@@ -1184,6 +1080,8 @@ function initFeedbackForm() {
 // TOAST NOTIFICATIONS
 // ============================================
 function showToast(title, message, type = 'info') {
+    if (!elements.toastContainer) return;
+    
     const icons = {
         success: 'fa-check-circle',
         error: 'fa-times-circle',
@@ -1194,63 +1092,52 @@ function showToast(title, message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.innerHTML = `
-        <div class="toast-icon">
-            <i class="fas ${icons[type]}"></i>
-        </div>
+        <div class="toast-icon"><i class="fas ${icons[type] || icons.info}"></i></div>
         <div class="toast-content">
             <div class="toast-title">${escapeHtml(title)}</div>
             <div class="toast-message">${escapeHtml(message)}</div>
         </div>
-        <button class="toast-close">
-            <i class="fas fa-times"></i>
-        </button>
+        <button class="toast-close"><i class="fas fa-times"></i></button>
     `;
     
-    elements.toastContainer?.appendChild(toast);
+    elements.toastContainer.appendChild(toast);
     
-    // Close button
-    toast.querySelector('.toast-close')?.addEventListener('click', () => {
-        removeToast(toast);
-    });
+    const close = () => {
+        toast.classList.add('hide');
+        setTimeout(() => toast.remove(), 300);
+    };
     
-    // Auto remove
-    setTimeout(() => {
-        removeToast(toast);
-    }, CONFIG.TOAST_DURATION);
-}
-
-function removeToast(toast) {
-    if (!toast) return;
-    toast.classList.add('hide');
-    setTimeout(() => {
-        toast.remove();
-    }, 300);
+    toast.querySelector('.toast-close').addEventListener('click', close);
+    setTimeout(close, CONFIG.TOAST_DURATION);
 }
 
 // ============================================
-// UTILITY FUNCTIONS
+// UTILITIES
 // ============================================
-function formatBytes(bytes) {
-    if (bytes === 0) return '0 B';
-    
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+function safeSetText(el, text) {
+    if (el) el.textContent = text;
 }
 
-function formatDuration(ms) {
-    if (!ms || ms < 0) return '0:00';
-    
-    const seconds = Math.floor((ms / 1000) % 60);
-    const minutes = Math.floor((ms / (1000 * 60)) % 60);
-    const hours = Math.floor(ms / (1000 * 60 * 60));
-    
-    if (hours > 0) {
-        return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    }
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+function safeSetWidth(el, percent) {
+    if (el) el.style.width = `${Math.min(Math.max(percent, 0), 100)}%`;
+}
+
+function capitalize(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+function formatTimestamp(stamp) {
+    if (!stamp) return '00:00';
+    // Remove leading zeros for hours if 00
+    return stamp.replace(/^00:/, '');
 }
 
 function getSourceIcon(source) {
@@ -1258,73 +1145,47 @@ function getSourceIcon(source) {
         youtube: 'fab fa-youtube',
         spotify: 'fab fa-spotify',
         soundcloud: 'fab fa-soundcloud',
+        deezer: 'fas fa-compact-disc',
+        applemusic: 'fab fa-apple',
         twitch: 'fab fa-twitch',
         bandcamp: 'fab fa-bandcamp',
-        vimeo: 'fab fa-vimeo',
-        deezer: 'fab fa-deezer',
-        applemusic: 'fab fa-apple',
-        tidal: 'fas fa-water',
-        http: 'fas fa-globe',
-        local: 'fas fa-folder',
+        vimeo: 'fab fa-vimeo-v',
     };
-    
-    const key = (source || '').toLowerCase();
-    return icons[key] || 'fas fa-music';
-}
-
-function capitalizeFirst(str) {
-    if (!str) return '';
-    return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    return icons[source?.toLowerCase()] || 'fas fa-music';
 }
 
 function copyToClipboard(text) {
     if (navigator.clipboard) {
-        navigator.clipboard.writeText(text).then(() => {
-            showToast('Copied!', `"${text}" copied to clipboard`, 'success');
-        }).catch(() => {
-            fallbackCopyToClipboard(text);
-        });
+        navigator.clipboard.writeText(text)
+            .then(() => showToast('Copied!', `"${text}" copied to clipboard`, 'success'))
+            .catch(() => fallbackCopy(text));
     } else {
-        fallbackCopyToClipboard(text);
+        fallbackCopy(text);
     }
 }
 
-function fallbackCopyToClipboard(text) {
-    const textArea = document.createElement('textarea');
-    textArea.value = text;
-    textArea.style.position = 'fixed';
-    textArea.style.left = '-9999px';
-    document.body.appendChild(textArea);
-    textArea.select();
-    
+function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;left:-9999px';
+    document.body.appendChild(ta);
+    ta.select();
     try {
         document.execCommand('copy');
-        showToast('Copied!', `"${text}" copied to clipboard`, 'success');
-    } catch (err) {
-        showToast('Error', 'Failed to copy to clipboard', 'error');
+        showToast('Copied!', `"${text}" copied`, 'success');
+    } catch {
+        showToast('Error', 'Copy failed', 'error');
     }
-    
-    document.body.removeChild(textArea);
+    ta.remove();
 }
 
 // ============================================
 // WINDOW EVENTS
 // ============================================
 window.addEventListener('resize', () => {
-    // Close mobile sidebar on resize to desktop
-    if (window.innerWidth > 992) {
-        closeMobileSidebar();
-    }
+    if (window.innerWidth > 992) closeMobileSidebar();
 });
 
-// Handle visibility change (pause/resume refresh)
 document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
         clearInterval(state.refreshInterval);
@@ -1334,16 +1195,13 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
-// Cleanup on page unload
 window.addEventListener('beforeunload', () => {
     clearInterval(state.refreshInterval);
 });
 
 // ============================================
-// EXPOSE FOR DEBUGGING (Optional)
+// DEBUG
 // ============================================
-window.dashboardDebug = {
-    state,
-    fetchData,
-    CONFIG,
-};
+window.dashboardDebug = { state, CONFIG, fetchData };
+
+console.log('📜 app.js loaded');
