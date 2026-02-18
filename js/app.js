@@ -39,8 +39,9 @@ function initElements() {
         sidebar: document.getElementById('sidebar'),
         sidebarToggle: document.getElementById('sidebarToggle'),
         sidebarOverlay: document.getElementById('sidebarOverlay'),
+        sidebarCloseMobile: document.getElementById('sidebarCloseMobile'),
         mobileMenuBtn: document.getElementById('mobileMenuBtn'),
-        navItems: document.querySelectorAll('.nav-item:not(.theme-nav-item)'),
+        navItems: document.querySelectorAll('.nav-item:not(.special-nav-item)'),
         
         // Theme
         themeToggle: document.getElementById('themeToggle'),
@@ -221,32 +222,56 @@ function getChartColors() {
 }
 
 // ============================================
-// SIDEBAR MANAGEMENT
+// SIDEBAR MANAGEMENT - COMPLETE FIX
 // ============================================
 function initSidebar() {
+    // Desktop collapse toggle
     const sidebarToggle = document.getElementById('sidebarToggle');
-    
     sidebarToggle?.addEventListener('click', (e) => {
         e.preventDefault();
-        elements.sidebar?.classList.toggle('collapsed');
-        localStorage.setItem('sidebarCollapsed', elements.sidebar?.classList.contains('collapsed'));
+        e.stopPropagation();
         
-        // Update toggle text
+        elements.sidebar?.classList.toggle('collapsed');
         const isCollapsed = elements.sidebar?.classList.contains('collapsed');
+        localStorage.setItem('sidebarCollapsed', isCollapsed);
+        
+        // Update text
         const span = sidebarToggle.querySelector('span');
         if (span) {
             span.textContent = isCollapsed ? 'Expand Menu' : 'Collapse Menu';
         }
     });
     
-    elements.mobileMenuBtn?.addEventListener('click', () => {
-        elements.sidebar?.classList.add('mobile-open');
-        elements.sidebarOverlay?.classList.add('active');
+    // Mobile menu open
+    elements.mobileMenuBtn?.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openMobileSidebar();
     });
     
-    elements.sidebarOverlay?.addEventListener('click', closeMobileSidebar);
+    // Mobile close button (X)
+    elements.sidebarCloseMobile?.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeMobileSidebar();
+    });
     
-    // Restore state
+    // Overlay click to close
+    elements.sidebarOverlay?.addEventListener('click', (e) => {
+        e.preventDefault();
+        closeMobileSidebar();
+    });
+    
+    // Close sidebar when clicking a nav item on mobile
+    document.querySelectorAll('.nav-item a').forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 992) {
+                closeMobileSidebar();
+            }
+        });
+    });
+    
+    // Restore collapsed state on desktop
     if (localStorage.getItem('sidebarCollapsed') === 'true' && window.innerWidth > 992) {
         elements.sidebar?.classList.add('collapsed');
         const span = sidebarToggle?.querySelector('span');
@@ -254,27 +279,47 @@ function initSidebar() {
     }
 }
 
+function openMobileSidebar() {
+    elements.sidebar?.classList.add('mobile-open');
+    elements.sidebarOverlay?.classList.add('active');
+    document.body.style.overflow = 'hidden'; // Prevent background scroll
+}
+
+function closeMobileSidebar() {
+    elements.sidebar?.classList.remove('mobile-open');
+    elements.sidebarOverlay?.classList.remove('active');
+    document.body.style.overflow = ''; // Restore scroll
+}
+
 // ============================================
 // NAVIGATION
 // ============================================
 function initNavigation() {
-    elements.navItems.forEach(item => {
+    // Get all nav items (excluding special items like theme toggle)
+    const navItems = document.querySelectorAll('.nav-item[data-page]');
+    
+    navItems.forEach(item => {
         item.addEventListener('click', (e) => {
             e.preventDefault();
             const page = item.dataset.page;
             if (page) {
                 navigateToPage(page);
-                closeMobileSidebar();
+                
+                // Close mobile sidebar after navigation
+                if (window.innerWidth <= 992) {
+                    closeMobileSidebar();
+                }
             }
         });
     });
     
+    // Handle browser back/forward
     window.addEventListener('hashchange', () => {
         const hash = window.location.hash.slice(1) || 'dashboard';
         navigateToPage(hash, false);
     });
     
-    // Initial page
+    // Initial page load
     const initial = window.location.hash.slice(1) || 'dashboard';
     navigateToPage(initial, false);
 }
@@ -282,8 +327,8 @@ function initNavigation() {
 function navigateToPage(pageName, updateHash = true) {
     state.currentPage = pageName;
     
-    // Update nav
-    elements.navItems.forEach(item => {
+    // Update nav items
+    document.querySelectorAll('.nav-item[data-page]').forEach(item => {
         item.classList.toggle('active', item.dataset.page === pageName);
     });
     
@@ -1138,8 +1183,20 @@ function fallbackCopy(text) {
 // WINDOW EVENTS
 // ============================================
 window.addEventListener('resize', () => {
-    if (window.innerWidth > 992) closeMobileSidebar();
+    // Close mobile sidebar when resizing to desktop
+    if (window.innerWidth > 992) {
+        closeMobileSidebar();
+    }
 });
+
+// Prevent touch scroll on overlay
+document.addEventListener('touchmove', (e) => {
+    if (elements.sidebarOverlay?.classList.contains('active')) {
+        if (!elements.sidebar?.contains(e.target)) {
+            e.preventDefault();
+        }
+    }
+}, { passive: false });
 
 document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
