@@ -5567,10 +5567,10 @@ ul {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all var(--transition-fast);
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     margin-top: 1px;
     background: var(--bg-secondary);
-    overflow: visible;
+    position: relative;
 }
 
 /* Icon centang di dalam custom checkbox */
@@ -5578,8 +5578,8 @@ ul {
     font-size: 12px;
     color: white;
     opacity: 0;
-    transform: scale(0.6);
-    transition: all var(--transition-fast);
+    transition: opacity 0.15s ease;
+    line-height: 1;
 }
 
 .checkbox-label:hover .custom-checkbox {
@@ -5590,30 +5590,26 @@ ul {
 .checkbox-label input[type="checkbox"]:checked+.custom-checkbox {
     background: var(--primary);
     border-color: var(--primary);
-    animation: bounceIn 0.4s ease;
+    box-shadow: 0 0 0 3px var(--primary-glow);
+    animation: checkPop 0.3s ease forwards;
 }
 
 .checkbox-label input[type="checkbox"]:checked+.custom-checkbox i {
     opacity: 1;
-    transform: scale(1);
 }
 
-/* Animasi checkbox */
-@keyframes bounceIn {
+/* Animasi checkbox - tanpa transform agar icon tidak tenggelam */
+@keyframes checkPop {
     0% {
-        transform: scale(1);
+        box-shadow: 0 0 0 0 var(--primary-glow);
     }
 
-    40% {
-        transform: scale(1.15);
-    }
-
-    70% {
-        transform: scale(0.95);
+    50% {
+        box-shadow: 0 0 0 6px var(--primary-glow);
     }
 
     100% {
-        transform: scale(1);
+        box-shadow: 0 0 0 0 transparent;
     }
 }
 
