@@ -1115,7 +1115,7 @@
             </div>
         </section>
 
-        <!-- ==================== FEEDBACK PAGE (UPDATED) ==================== -->
+        <!-- ==================== FEEDBACK PAGE ==================== -->
         <section class="page" id="page-feedback">
             <div class="page-header animate-fade-in">
                 <div>
@@ -1126,23 +1126,11 @@
 
             <div class="feedback-container animate-fade-in-up">
                 <form class="feedback-form" id="feedbackForm">
-                    <!-- Form Header -->
-                    <div class="form-header">
-                        <div class="form-header-icon">
-                            <i class="fas fa-envelope-open-text"></i>
-                        </div>
-                        <div class="form-header-text">
-                            <h3>Send Us Your Feedback</h3>
-                            <p>We'd love to hear from you! Your feedback helps us improve.</p>
-                        </div>
-                    </div>
-
-                    <!-- Name Field (Required) -->
+                    <!-- Name Field -->
                     <div class="form-group">
                         <label for="feedbackName">
                             <i class="fas fa-user"></i>
                             Name
-                            <span class="required-badge">Required</span>
                         </label>
                         <input 
                             type="text" 
@@ -1154,18 +1142,13 @@
                             required
                             autocomplete="name"
                         >
-                        <span class="form-hint">
-                            <i class="fas fa-info-circle"></i>
-                            Minimum 2 characters
-                        </span>
                     </div>
 
-                    <!-- Email Field (Required) -->
+                    <!-- Email Field -->
                     <div class="form-group">
                         <label for="feedbackEmail">
                             <i class="fas fa-envelope"></i>
                             Email
-                            <span class="required-badge">Required</span>
                         </label>
                         <input 
                             type="email" 
@@ -1175,10 +1158,6 @@
                             required
                             autocomplete="email"
                         >
-                        <span class="form-hint">
-                            <i class="fas fa-info-circle"></i>
-                            We'll use this email to respond to your feedback
-                        </span>
                     </div>
 
                     <!-- Feedback Type -->
@@ -1186,7 +1165,6 @@
                         <label for="feedbackType">
                             <i class="fas fa-tag"></i>
                             Feedback Type
-                            <span class="required-badge">Required</span>
                         </label>
                         <div class="select-wrapper">
                             <select id="feedbackType" name="type" required>
@@ -1205,12 +1183,11 @@
                         </div>
                     </div>
 
-                    <!-- Message Field (Required) -->
+                    <!-- Message Field -->
                     <div class="form-group">
                         <label for="feedbackMessage">
                             <i class="fas fa-comment-alt"></i>
                             Message
-                            <span class="required-badge">Required</span>
                         </label>
                         <textarea 
                             id="feedbackMessage" 
@@ -1222,15 +1199,12 @@
                             required
                         ></textarea>
                         <div class="textarea-footer">
-                            <span class="form-hint">
-                                <i class="fas fa-info-circle"></i>
-                                Minimum 10 characters
-                            </span>
+                            <span></span>
                             <span class="char-counter" id="charCounter">0 / 2000</span>
                         </div>
                     </div>
 
-                    <!-- Agreement Checkbox (Required) -->
+                    <!-- Agreement Checkbox -->
                     <div class="form-group checkbox-group">
                         <label class="checkbox-label">
                             <input type="checkbox" id="feedbackAgree" name="agree" required>
@@ -1239,7 +1213,6 @@
                             </span>
                             <span class="checkbox-text">
                                 I agree to be contacted regarding this feedback
-                                <span class="required-badge">Required</span>
                             </span>
                         </label>
                     </div>
@@ -1344,3 +1317,4 @@
     </script>
 </body>
 </html>
+
