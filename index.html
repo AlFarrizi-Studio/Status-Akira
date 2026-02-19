@@ -46,122 +46,122 @@
 </head>
 <body>
     <!-- Sidebar -->
-<aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-        <div class="logo">
-            <div class="logo-icon">
-                <img src="https://i.ibb.co.com/7xVkp1q2/Al-Farrizi.png" alt="Al Farrizi">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <img src="https://i.ibb.co.com/7xVkp1q2/Al-Farrizi.png" alt="Al Farrizi">
+                </div>
+                <div class="logo-text">
+                    <h1>Al Farrizi</h1>
+                    <span>Music Bot</span>
+                </div>
             </div>
-            <div class="logo-text">
-                <h1>Al Farrizi</h1>
-                <span>Music Bot</span>
+            <!-- Close button for mobile -->
+            <button class="sidebar-close-mobile" id="sidebarCloseMobile">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <ul>
+                <li class="nav-item active" data-page="dashboard">
+                    <a href="#dashboard">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item" data-page="commands">
+                    <a href="#commands">
+                        <i class="fas fa-terminal"></i>
+                        <span>Commands</span>
+                    </a>
+                </li>
+                <li class="nav-item" data-page="stats">
+                    <a href="#stats">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Stats Resource</span>
+                    </a>
+                </li>
+                <li class="nav-item" data-page="sources">
+                    <a href="#sources">
+                        <i class="fas fa-plug"></i>
+                        <span>Source Managers</span>
+                    </a>
+                </li>
+                <li class="nav-item" data-page="filters">
+                    <a href="#filters">
+                        <i class="fas fa-sliders-h"></i>
+                        <span>Audio Filters</span>
+                    </a>
+                </li>
+                <li class="nav-item" data-page="terms">
+                    <a href="#terms">
+                        <i class="fas fa-file-contract"></i>
+                        <span>Terms Of Service</span>
+                    </a>
+                </li>
+                <li class="nav-item" data-page="support">
+                    <a href="#support">
+                        <i class="fas fa-headset"></i>
+                        <span>Support</span>
+                    </a>
+                </li>
+                <li class="nav-item" data-page="feedback">
+                    <a href="#feedback">
+                        <i class="fas fa-comment-dots"></i>
+                        <span>Feedback</span>
+                    </a>
+                </li>
+                
+                <!-- Divider -->
+                <li class="nav-divider"></li>
+                
+                <!-- Theme Toggle -->
+                <li class="nav-item special-nav-item theme-nav-item" id="themeNavItem">
+                    <a href="javascript:void(0)" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                        <span>Dark Mode</span>
+                    </a>
+                </li>
+                
+                <!-- Sidebar Collapse Toggle - Desktop Only -->
+                <li class="nav-item special-nav-item collapse-nav-item">
+                    <a href="javascript:void(0)" id="sidebarToggle">
+                        <i class="fas fa-chevron-left"></i>
+                        <span>Collapse Menu</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="version-info">
+                <span class="version-badge">v4.25.0</span>
             </div>
         </div>
-        <!-- Close button for mobile -->
-        <button class="sidebar-close-mobile" id="sidebarCloseMobile">
-            <i class="fas fa-times"></i>
+    </aside>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i class="fas fa-bars"></i>
         </button>
-    </div>
-
-    <nav class="sidebar-nav">
-        <ul>
-            <li class="nav-item active" data-page="dashboard">
-                <a href="#dashboard">
-                    <i class="fas fa-home"></i>
-                    <span>Dashboard</span>
-                </a>
-            </li>
-            <li class="nav-item" data-page="commands">
-                <a href="#commands">
-                    <i class="fas fa-terminal"></i>
-                    <span>Commands</span>
-                </a>
-            </li>
-            <li class="nav-item" data-page="stats">
-                <a href="#stats">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Stats Resource</span>
-                </a>
-            </li>
-            <li class="nav-item" data-page="sources">
-                <a href="#sources">
-                    <i class="fas fa-plug"></i>
-                    <span>Source Managers</span>
-                </a>
-            </li>
-            <li class="nav-item" data-page="filters">
-                <a href="#filters">
-                    <i class="fas fa-sliders-h"></i>
-                    <span>Audio Filters</span>
-                </a>
-            </li>
-            <li class="nav-item" data-page="terms">
-                <a href="#terms">
-                    <i class="fas fa-file-contract"></i>
-                    <span>Terms Of Service</span>
-                </a>
-            </li>
-            <li class="nav-item" data-page="support">
-                <a href="#support">
-                    <i class="fas fa-headset"></i>
-                    <span>Support</span>
-                </a>
-            </li>
-            <li class="nav-item" data-page="feedback">
-                <a href="#feedback">
-                    <i class="fas fa-comment-dots"></i>
-                    <span>Feedback</span>
-                </a>
-            </li>
-            
-            <!-- Divider -->
-            <li class="nav-divider"></li>
-            
-            <!-- Theme Toggle -->
-            <li class="nav-item special-nav-item theme-nav-item" id="themeNavItem">
-                <a href="javascript:void(0)" id="themeToggle">
-                    <i class="fas fa-moon"></i>
-                    <span>Dark Mode</span>
-                </a>
-            </li>
-            
-            <!-- Sidebar Collapse Toggle - Desktop Only -->
-            <li class="nav-item special-nav-item collapse-nav-item">
-                <a href="javascript:void(0)" id="sidebarToggle">
-                    <i class="fas fa-chevron-left"></i>
-                    <span>Collapse Menu</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-
-    <div class="sidebar-footer">
-        <div class="version-info">
-            <span class="version-badge">v4.23.7</span>
+        <div class="mobile-logo">
+            <img src="https://i.ibb.co.com/7xVkp1q2/Al-Farrizi.png" alt="Al Farrizi">
+            <span>Al Farrizi</span>
         </div>
-    </div>
-</aside>
-
-<!-- Mobile Sidebar Overlay -->
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-<!-- Mobile Header -->
-<header class="mobile-header">
-    <button class="mobile-menu-btn" id="mobileMenuBtn">
-        <i class="fas fa-bars"></i>
-    </button>
-    <div class="mobile-logo">
-        <img src="https://i.ibb.co.com/7xVkp1q2/Al-Farrizi.png" alt="Al Farrizi">
-        <span>Al Farrizi</span>
-    </div>
-    <button class="theme-toggle-mobile" id="themeToggleMobile">
-        <i class="fas fa-moon"></i>
-    </button>
-</header>
+        <button class="theme-toggle-mobile" id="themeToggleMobile">
+            <i class="fas fa-moon"></i>
+        </button>
+    </header>
 
     <!-- Main Content -->
     <main class="main-content" id="mainContent">
-        <!-- Dashboard Page -->
+        <!-- ==================== DASHBOARD PAGE ==================== -->
         <section class="page active" id="page-dashboard">
             <div class="page-header animate-fade-in">
                 <div class="welcome-section">
@@ -322,7 +322,7 @@
             </div>
         </section>
 
-        <!-- Commands Page -->
+        <!-- ==================== COMMANDS PAGE ==================== -->
         <section class="page" id="page-commands">
             <div class="page-header animate-fade-in">
                 <div>
@@ -641,7 +641,7 @@
             </div>
         </section>
 
-        <!-- Stats Page -->
+        <!-- ==================== STATS PAGE ==================== -->
         <section class="page" id="page-stats">
             <div class="page-header animate-fade-in">
                 <div>
@@ -768,10 +768,10 @@
                 </div>
             </div>
 
-            <!-- Uptime Chart - With margin top -->
+            <!-- Uptime Chart -->
             <div class="stats-panel full-width animate-fade-in-up" style="margin-top: 24px;">
                 <div class="panel-header">
-                    <h3><i class="fas fa-clock"></i> Uptime Trend</h3>
+                    <h3><i class="fas fa-clock"></i> Response Time Trend</h3>
                     <span class="live-badge"><span class="pulse"></span> Live</span>
                 </div>
                 <div class="panel-content">
@@ -782,7 +782,7 @@
             </div>
         </section>
 
-        <!-- Sources Page -->
+        <!-- ==================== SOURCES PAGE ==================== -->
         <section class="page" id="page-sources">
             <div class="page-header animate-fade-in">
                 <div>
@@ -799,7 +799,7 @@
             </div>
         </section>
 
-        <!-- Filters Page -->
+        <!-- ==================== FILTERS PAGE ==================== -->
         <section class="page" id="page-filters">
             <div class="page-header animate-fade-in">
                 <div>
@@ -816,7 +816,7 @@
             </div>
         </section>
 
-        <!-- Terms Page -->
+        <!-- ==================== TERMS PAGE ==================== -->
         <section class="page" id="page-terms">
             <div class="page-header animate-fade-in">
                 <div>
@@ -983,7 +983,7 @@
             </div>
         </section>
 
-        <!-- Support Page -->
+        <!-- ==================== SUPPORT PAGE ==================== -->
         <section class="page" id="page-support">
             <div class="page-header animate-fade-in">
                 <div>
@@ -1115,88 +1115,191 @@
             </div>
         </section>
 
-        <!-- Feedback Page -->
+        <!-- ==================== FEEDBACK PAGE (UPDATED) ==================== -->
         <section class="page" id="page-feedback">
             <div class="page-header animate-fade-in">
                 <div>
                     <h1><i class="fas fa-comment-dots"></i> Feedback</h1>
-                    <p>Share your thoughts and suggestions</p>
+                    <p>Share your thoughts, suggestions, or report issues</p>
                 </div>
             </div>
 
             <div class="feedback-container animate-fade-in-up">
                 <form class="feedback-form" id="feedbackForm">
-                    <div class="form-group">
-                        <label for="feedbackUsername">
-                            <i class="fab fa-discord"></i>
-                            Discord Username
-                        </label>
-                        <input type="text" id="feedbackUsername" placeholder="e.g., User#1234 or username" required>
+                    <!-- Form Header -->
+                    <div class="form-header">
+                        <div class="form-header-icon">
+                            <i class="fas fa-envelope-open-text"></i>
+                        </div>
+                        <div class="form-header-text">
+                            <h3>Send Us Your Feedback</h3>
+                            <p>We'd love to hear from you! Your feedback helps us improve.</p>
+                        </div>
                     </div>
 
+                    <!-- Name Field (Required) -->
+                    <div class="form-group">
+                        <label for="feedbackName">
+                            <i class="fas fa-user"></i>
+                            Name
+                            <span class="required-badge">Required</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="feedbackName" 
+                            name="name"
+                            placeholder="Enter your name"
+                            minlength="2"
+                            maxlength="100"
+                            required
+                            autocomplete="name"
+                        >
+                        <span class="form-hint">
+                            <i class="fas fa-info-circle"></i>
+                            Minimum 2 characters
+                        </span>
+                    </div>
+
+                    <!-- Email Field (Required) -->
                     <div class="form-group">
                         <label for="feedbackEmail">
                             <i class="fas fa-envelope"></i>
                             Email
+                            <span class="required-badge">Required</span>
                         </label>
-                        <input type="email" id="feedbackEmail" placeholder="your@email.com">
+                        <input 
+                            type="email" 
+                            id="feedbackEmail" 
+                            name="email"
+                            placeholder="your@email.com"
+                            required
+                            autocomplete="email"
+                        >
+                        <span class="form-hint">
+                            <i class="fas fa-info-circle"></i>
+                            We'll use this email to respond to your feedback
+                        </span>
                     </div>
 
+                    <!-- Feedback Type -->
                     <div class="form-group">
                         <label for="feedbackType">
                             <i class="fas fa-tag"></i>
                             Feedback Type
+                            <span class="required-badge">Required</span>
                         </label>
-                        <select id="feedbackType" required>
-                            <option value="general">💭 General Feedback</option>
-                            <option value="bug">🐛 Bug Report</option>
-                            <option value="feature">✨ Feature Request</option>
-                            <option value="suggestion">💡 Suggestion</option>
-                            <option value="question">❓ Question</option>
-                            <option value="praise">🎉 Praise / Thanks</option>
-                            <option value="complaint">😞 Complaint</option>
-                            <option value="urgent">🚨 Urgent Issue</option>
-                            <option value="other">📝 Other</option>
-                        </select>
+                        <div class="select-wrapper">
+                            <select id="feedbackType" name="type" required>
+                                <option value="" disabled selected>Select feedback type...</option>
+                                <option value="general">💭 General Feedback</option>
+                                <option value="bug">🐛 Bug Report</option>
+                                <option value="feature">✨ Feature Request</option>
+                                <option value="suggestion">💡 Suggestion</option>
+                                <option value="question">❓ Question</option>
+                                <option value="praise">🎉 Praise / Thanks</option>
+                                <option value="complaint">😞 Complaint</option>
+                                <option value="urgent">🚨 Urgent Issue</option>
+                                <option value="other">📝 Other</option>
+                            </select>
+                            <i class="fas fa-chevron-down select-arrow"></i>
+                        </div>
                     </div>
 
+                    <!-- Message Field (Required) -->
                     <div class="form-group">
                         <label for="feedbackMessage">
-                            <i class="fas fa-message"></i>
-                            Your Message
+                            <i class="fas fa-comment-alt"></i>
+                            Message
+                            <span class="required-badge">Required</span>
                         </label>
-                        <textarea id="feedbackMessage" rows="6" placeholder="Tell us what you think..." required></textarea>
+                        <textarea 
+                            id="feedbackMessage" 
+                            name="message"
+                            rows="6" 
+                            placeholder="Tell us what's on your mind... Be as detailed as possible."
+                            minlength="10"
+                            maxlength="2000"
+                            required
+                        ></textarea>
+                        <div class="textarea-footer">
+                            <span class="form-hint">
+                                <i class="fas fa-info-circle"></i>
+                                Minimum 10 characters
+                            </span>
+                            <span class="char-counter" id="charCounter">0 / 2000</span>
+                        </div>
                     </div>
 
-                    <div class="form-group">
+                    <!-- Agreement Checkbox (Required) -->
+                    <div class="form-group checkbox-group">
                         <label class="checkbox-label">
-                            <input type="checkbox" id="feedbackContact">
-                            <span class="checkmark"></span>
-                            I agree to be contacted regarding this feedback
+                            <input type="checkbox" id="feedbackAgree" name="agree" required>
+                            <span class="custom-checkbox">
+                                <i class="fas fa-check"></i>
+                            </span>
+                            <span class="checkbox-text">
+                                I agree to be contacted regarding this feedback
+                                <span class="required-badge">Required</span>
+                            </span>
                         </label>
                     </div>
 
+                    <!-- Submit Button -->
                     <button type="submit" class="submit-btn">
-                        <i class="fas fa-paper-plane"></i>
-                        Submit Feedback
+                        <span class="btn-content">
+                            <i class="fas fa-paper-plane"></i>
+                            <span>Submit Feedback</span>
+                        </span>
+                        <span class="btn-loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Sending...</span>
+                        </span>
                     </button>
+
+                    <!-- Privacy Notice -->
+                    <div class="form-footer">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Your information is secure and only visible to the development team.</span>
+                    </div>
                 </form>
 
+                <!-- Feedback Info Cards -->
                 <div class="feedback-info">
-                    <div class="info-card">
-                        <i class="fas fa-lightbulb"></i>
-                        <h3>Have a Suggestion?</h3>
-                        <p>We love hearing your ideas! Let us know how we can improve the bot.</p>
+                    <div class="info-card suggestion">
+                        <div class="info-card-icon">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <div class="info-card-content">
+                            <h3>Have a Suggestion?</h3>
+                            <p>We love hearing your ideas! Let us know how we can improve the bot.</p>
+                        </div>
                     </div>
-                    <div class="info-card">
-                        <i class="fas fa-bug"></i>
-                        <h3>Found a Bug?</h3>
-                        <p>Help us squash bugs by providing detailed information about the issue.</p>
+                    <div class="info-card bug">
+                        <div class="info-card-icon">
+                            <i class="fas fa-bug"></i>
+                        </div>
+                        <div class="info-card-content">
+                            <h3>Found a Bug?</h3>
+                            <p>Help us squash bugs by providing detailed information about the issue.</p>
+                        </div>
                     </div>
-                    <div class="info-card">
-                        <i class="fas fa-star"></i>
-                        <h3>Enjoying the Bot?</h3>
-                        <p>We'd love to hear what you like! Positive feedback motivates our team.</p>
+                    <div class="info-card praise">
+                        <div class="info-card-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="info-card-content">
+                            <h3>Enjoying the Bot?</h3>
+                            <p>We'd love to hear what you like! Positive feedback motivates our team.</p>
+                        </div>
+                    </div>
+                    <div class="info-card response">
+                        <div class="info-card-icon">
+                            <i class="fas fa-reply"></i>
+                        </div>
+                        <div class="info-card-content">
+                            <h3>We'll Respond!</h3>
+                            <p>Our team reviews every feedback and will get back to you via email.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1211,13 +1314,33 @@
     
     <!-- App Script -->
     <script src="js/app.js"></script>
+
+    <!-- Character Counter Script -->
+    <script>
+        // Character counter for textarea
+        document.addEventListener('DOMContentLoaded', function() {
+            var textarea = document.getElementById('feedbackMessage');
+            var counter = document.getElementById('charCounter');
+            
+            if (textarea && counter) {
+                textarea.addEventListener('input', function() {
+                    var length = textarea.value.length;
+                    counter.textContent = length + ' / 2000';
+                    
+                    if (length >= 1800) {
+                        counter.classList.add('warning');
+                    } else {
+                        counter.classList.remove('warning');
+                    }
+                    
+                    if (length >= 2000) {
+                        counter.classList.add('danger');
+                    } else {
+                        counter.classList.remove('danger');
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
