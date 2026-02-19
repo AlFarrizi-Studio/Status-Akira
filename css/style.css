@@ -5371,9 +5371,76 @@ ul {
 
 
 /* ============================================
-   FEEDBACK PAGE - FIXED VERSION
-   Version: 4.25.3 - Complete Checkbox with Checkmark
+   FEEDBACK PAGE - ENHANCED STYLES
    ============================================ */
+
+/* Form Header */
+.form-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.form-header-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: var(--gradient-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 4px 20px var(--primary-glow);
+    animation: float 3s ease-in-out infinite;
+}
+
+.form-header-text h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--text-primary);
+}
+
+.form-header-text p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Required Badge */
+.required-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--danger);
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: 8px;
+}
+
+/* Form Hint */
+.form-hint {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 8px;
+}
+
+.form-hint i {
+    font-size: 11px;
+    color: var(--primary);
+}
 
 /* Select Wrapper */
 .select-wrapper {
@@ -5428,8 +5495,9 @@ ul {
 .textarea-footer {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: space-between;
     margin-top: 8px;
+    gap: 12px;
 }
 
 /* Character Counter */
@@ -5441,6 +5509,7 @@ ul {
     background: var(--bg-tertiary);
     border-radius: 12px;
     transition: all var(--transition-fast);
+    flex-shrink: 0;
 }
 
 .char-counter.warning {
@@ -5453,27 +5522,25 @@ ul {
     color: var(--danger);
 }
 
-/* ============================================
-   CHECKBOX - WITH CHECKMARK ICON
-   ============================================ */
+/* Checkbox Group */
 .checkbox-group {
     margin-bottom: 24px !important;
 }
 
 .checkbox-label {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    gap: 14px;
     cursor: pointer;
     font-size: 14px;
     color: var(--text-secondary);
     user-select: none;
     line-height: 1.5;
-    padding: 16px 18px;
+    padding: 12px 16px;
     background: var(--bg-tertiary);
     border: 2px solid var(--border-color);
     border-radius: var(--border-radius-sm);
     transition: all var(--transition-fast);
-    position: relative;
 }
 
 .checkbox-label:hover {
@@ -5481,90 +5548,46 @@ ul {
     background: rgba(99, 102, 241, 0.05);
 }
 
-/* Hide native checkbox */
 .checkbox-label input[type="checkbox"] {
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
-    pointer-events: none;
+    display: none;
 }
 
-/* Custom checkbox box */
 .custom-checkbox {
-    position: relative;
     width: 24px;
     height: 24px;
     min-width: 24px;
-    max-width: 24px;
-    flex-shrink: 0;
     border: 2px solid var(--border-color);
     border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
-    background: var(--bg-secondary);
-}
-
-/* Checkmark icon - hidden by default */
-.custom-checkbox i {
+    transition: all var(--transition-fast);
+    margin-top: 1px;
+    color: transparent;
     font-size: 12px;
-    color: white;
-    opacity: 0;
-    transform: scale(0);
-    transition: all 0.2s ease;
 }
 
-/* Hover state */
 .checkbox-label:hover .custom-checkbox {
     border-color: var(--primary);
 }
 
-/* Focus state */
-.checkbox-label input[type="checkbox"]:focus+.custom-checkbox {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 4px var(--primary-glow);
-}
-
-/* ===== CHECKED STATE - Checkmark appears ===== */
 .checkbox-label input[type="checkbox"]:checked+.custom-checkbox {
     background: var(--primary);
     border-color: var(--primary);
-    animation: checkboxPop 0.3s ease;
+    color: white;
+    animation: bounceIn 0.4s ease;
 }
 
-.checkbox-label input[type="checkbox"]:checked+.custom-checkbox i {
-    opacity: 1;
-    transform: scale(1);
-}
-
-/* Checkbox animation */
-@keyframes checkboxPop {
-    0% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.2);
-    }
-
-    100% {
-        transform: scale(1);
-    }
-}
-
-/* Checkbox text */
 .checkbox-text {
     flex: 1;
-    line-height: 1.5;
-    margin-left: 14px;
-    color: var(--text-secondary);
+    line-height: 1.6;
 }
 
-/* ============================================
-   SUBMIT BUTTON
-   ============================================ */
+.checkbox-text .required-badge {
+    margin-left: 6px;
+}
+
+/* Submit Button Enhanced */
 .submit-btn {
     width: 100%;
     padding: 18px 28px;
@@ -5615,6 +5638,10 @@ ul {
     transform: none;
 }
 
+.submit-btn:disabled:hover::before {
+    left: -100%;
+}
+
 .btn-content,
 .btn-loading {
     display: flex;
@@ -5635,12 +5662,12 @@ ul {
     display: flex;
 }
 
-.submit-btn:hover .btn-content i {
-    transform: translateX(4px);
-}
-
 .submit-btn i {
     transition: transform var(--transition-fast);
+}
+
+.submit-btn:hover .btn-content i {
+    transform: translateX(4px);
 }
 
 /* Form Footer / Privacy Notice */
@@ -5665,32 +5692,25 @@ ul {
 }
 
 /* ============================================
-   INFO CARDS - FIXED ICON POSITIONING
+   INFO CARDS - ENHANCED VARIANTS
    ============================================ */
-.feedback-info {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
 
+/* Info Card Base Update */
 .info-card {
     background: var(--gradient-card);
     backdrop-filter: blur(var(--blur-amount));
     -webkit-backdrop-filter: blur(var(--blur-amount));
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
-    padding: 20px;
-    padding-left: 24px;
+    padding: 24px;
     display: flex;
-    flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
     gap: 16px;
     transition: all var(--transition-normal);
     position: relative;
-    overflow: visible;
+    overflow: hidden;
 }
 
-/* Left accent bar */
 .info-card::before {
     content: '';
     position: absolute;
@@ -5698,7 +5718,6 @@ ul {
     left: 0;
     width: 4px;
     height: 100%;
-    border-radius: 4px 0 0 4px;
     transition: all var(--transition-normal);
 }
 
@@ -5708,28 +5727,25 @@ ul {
     box-shadow: var(--shadow-md);
 }
 
-/* Info Card Icon - FIXED */
+/* Info Card Icon */
 .info-card-icon {
-    width: 52px;
-    height: 52px;
-    min-width: 52px;
-    max-width: 52px;
-    flex: 0 0 52px;
-    border-radius: 14px;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 20px;
     transition: transform var(--transition-normal);
-    position: relative;
-    z-index: 1;
 }
 
 .info-card-icon i {
-    font-size: 22px;
+    font-size: 20px !important;
+    display: inline-block !important;
+    margin-bottom: 0 !important;
+    color: inherit !important;
     line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .info-card:hover .info-card-icon {
@@ -5740,17 +5756,13 @@ ul {
 .info-card-content {
     flex: 1;
     min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
 }
 
 .info-card-content h3 {
     font-size: 16px;
     font-weight: 600;
-    margin: 0;
+    margin-bottom: 6px;
     color: var(--text-primary);
-    line-height: 1.3;
 }
 
 .info-card-content p {
@@ -5821,8 +5833,19 @@ ul {
 }
 
 /* ============================================
-   FEEDBACK RESPONSIVE
+   FEEDBACK INFO LAYOUT UPDATE
    ============================================ */
+
+.feedback-info {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ============================================
+   FEEDBACK RESPONSIVE UPDATES
+   ============================================ */
+
 @media (max-width: 1200px) {
     .feedback-info {
         flex-direction: row;
@@ -5855,12 +5878,53 @@ ul {
 }
 
 @media (max-width: 768px) {
+    .form-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 14px;
+        margin-bottom: 28px;
+        padding-bottom: 20px;
+    }
+
+    .form-header-icon {
+        width: 52px;
+        height: 52px;
+        font-size: 22px;
+    }
+
+    .form-header-text h3 {
+        font-size: 18px;
+    }
+
+    .form-header-text p {
+        font-size: 13px;
+    }
+
     .feedback-form {
         padding: 24px;
     }
 
+    .form-group label {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .required-badge {
+        margin-left: 0;
+    }
+
+    .textarea-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .char-counter {
+        align-self: flex-end;
+    }
+
     .checkbox-label {
-        padding: 14px 16px;
+        padding: 14px;
     }
 
     .form-footer {
@@ -5872,21 +5936,14 @@ ul {
 
     .info-card {
         flex: 1 1 100%;
-        padding: 18px;
-        padding-left: 22px;
+        padding: 20px;
     }
 
     .info-card-icon {
-        width: 48px;
-        height: 48px;
-        min-width: 48px;
-        max-width: 48px;
-        flex: 0 0 48px;
-        border-radius: 12px;
-    }
-
-    .info-card-icon i {
-        font-size: 20px;
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        font-size: 18px;
     }
 
     .info-card-content h3 {
@@ -5899,6 +5956,21 @@ ul {
 }
 
 @media (max-width: 576px) {
+    .form-header {
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+    }
+
+    .form-header-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
+    }
+
+    .form-header-text h3 {
+        font-size: 17px;
+    }
+
     .feedback-form {
         padding: 20px;
     }
@@ -5910,6 +5982,15 @@ ul {
     .form-group label {
         font-size: 13px;
         margin-bottom: 10px;
+    }
+
+    .required-badge {
+        font-size: 9px;
+        padding: 2px 6px;
+    }
+
+    .form-hint {
+        font-size: 11px;
     }
 
     .select-wrapper select,
@@ -5929,25 +6010,15 @@ ul {
     }
 
     .checkbox-label {
-        padding: 14px;
+        padding: 12px;
         font-size: 13px;
+        gap: 12px;
     }
 
     .custom-checkbox {
         width: 22px;
         height: 22px;
         min-width: 22px;
-        max-width: 22px;
-        border-radius: 5px;
-    }
-
-    .custom-checkbox i {
-        font-size: 11px;
-    }
-
-    .checkbox-text {
-        margin-left: 12px;
-        font-size: 13px;
     }
 
     .submit-btn {
@@ -5962,8 +6033,7 @@ ul {
 
     .info-card {
         padding: 16px;
-        padding-left: 20px;
-        gap: 14px;
+        gap: 12px;
     }
 
     .info-card::before {
@@ -5971,20 +6041,16 @@ ul {
     }
 
     .info-card-icon {
-        width: 44px;
-        height: 44px;
-        min-width: 44px;
-        max-width: 44px;
-        flex: 0 0 44px;
-        border-radius: 11px;
-    }
-
-    .info-card-icon i {
-        font-size: 18px;
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        font-size: 16px;
+        border-radius: 10px;
     }
 
     .info-card-content h3 {
         font-size: 14px;
+        margin-bottom: 4px;
     }
 
     .info-card-content p {
@@ -5993,47 +6059,33 @@ ul {
 }
 
 @media (max-width: 400px) {
+    .form-header-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+        border-radius: 12px;
+    }
+
+    .form-header-text h3 {
+        font-size: 16px;
+    }
+
+    .form-header-text p {
+        font-size: 12px;
+    }
+
     .feedback-form {
         padding: 16px;
     }
 
     .checkbox-label {
-        padding: 12px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
     }
 
     .custom-checkbox {
-        width: 20px;
-        height: 20px;
-        min-width: 20px;
-        max-width: 20px;
-    }
-
-    .custom-checkbox i {
-        font-size: 10px;
-    }
-
-    .checkbox-text {
-        margin-left: 10px;
-        font-size: 12px;
-    }
-
-    .info-card {
-        padding: 14px;
-        padding-left: 18px;
-        gap: 12px;
-    }
-
-    .info-card-icon {
-        width: 40px;
-        height: 40px;
-        min-width: 40px;
-        max-width: 40px;
-        flex: 0 0 40px;
-        border-radius: 10px;
-    }
-
-    .info-card-icon i {
-        font-size: 16px;
+        order: -1;
     }
 
     .submit-btn {
