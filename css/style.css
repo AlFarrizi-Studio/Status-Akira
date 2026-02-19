@@ -6161,34 +6161,6 @@ ul {
     position: relative;
 }
 
-.now-playing-card.clickable::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--gradient-primary);
-    opacity: 0;
-    border-radius: var(--border-radius);
-    transition: opacity var(--transition-fast);
-    pointer-events: none;
-    z-index: 0;
-}
-
-.now-playing-card.clickable:hover::after {
-    opacity: 0.03;
-}
-
-.now-playing-card.clickable:hover {
-    transform: translateY(-6px);
-    border-color: var(--primary);
-    box-shadow: 0 8px 40px var(--primary-glow);
-}
-
-.now-playing-card.clickable:active,
-.now-playing-card.clicking {
-    transform: translateY(-2px) scale(0.99);
-}
-
-
 /* Source Row with External Link */
 .np-source-row {
     display: flex;
@@ -6222,132 +6194,38 @@ ul {
     transform: scale(1.1);
 }
 
-/* Artwork hover effect for clickable cards */
-.now-playing-card.clickable:hover .np-artwork img {
-    transform: scale(1.15);
-}
-
-.now-playing-card.clickable .np-artwork::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: rgba(99, 102, 241, 0.3);
-    opacity: 0;
-    transition: opacity var(--transition-fast);
-    z-index: 1;
-    border-radius: 12px;
-}
-
-.now-playing-card.clickable:hover .np-artwork::before {
-    opacity: 1;
-}
-
-.now-playing-card.clickable .np-artwork::after {
-    content: '\f35d';
-    /* FontAwesome external link icon */
-    font-family: 'Font Awesome 6 Free', 'Font Awesome 5 Free';
-    font-weight: 900;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0);
-    color: white;
-    font-size: 20px;
-    opacity: 0;
-    transition: all var(--transition-fast);
-    z-index: 2;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-}
-
-.now-playing-card.clickable:hover .np-artwork::after {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-}
-
-/* Title link styling */
-.now-playing-card.clickable .np-title {
-    transition: color var(--transition-fast);
-}
-
-.now-playing-card.clickable:hover .np-title {
-    color: var(--primary-light);
-}
-
-/* Source badge animation */
-.now-playing-card.clickable:hover .np-source {
-    background: var(--primary);
-    color: white;
-}
-
 /* ============================================
    NOW PLAYING CLICKABLE - RESPONSIVE
    ============================================ */
 @media (max-width: 768px) {
-
     .np-external-link {
         width: 22px;
         height: 22px;
         font-size: 9px;
     }
-
-    .now-playing-card.clickable .np-artwork::after {
-        font-size: 16px;
-    }
-
-    .now-playing-card.clickable .np-artwork::before {
-        border-radius: 10px;
-    }
 }
 
 @media (max-width: 576px) {
-
     .np-external-link {
         width: 20px;
         height: 20px;
         font-size: 8px;
     }
-
-    .now-playing-card.clickable .np-artwork::after {
-        font-size: 14px;
-    }
-
-    .now-playing-card.clickable .np-artwork::before {
-        border-radius: 8px;
-    }
 }
 
 @media (max-width: 400px) {
-
     .np-external-link {
         width: 18px;
         height: 18px;
         font-size: 7px;
     }
-
-    .now-playing-card.clickable .np-artwork::after {
-        font-size: 12px;
-    }
 }
 
 /* Touch device optimizations */
 @media (hover: none) and (pointer: coarse) {
-
-    /* Always show external link indicator on touch devices */
     .now-playing-card.clickable .np-external-link {
         opacity: 1;
         transform: scale(1);
-    }
-
-
-    /* Simplify hover effects for touch */
-    .now-playing-card.clickable .np-artwork::before,
-    .now-playing-card.clickable .np-artwork::after {
-        display: none;
-    }
-
-    .now-playing-card.clickable:active {
-        transform: scale(0.98);
-        opacity: 0.9;
     }
 }
 
