@@ -5740,6 +5740,14 @@ ul {
     transition: transform var(--transition-normal);
 }
 
+.info-card-icon i {
+    font-size: 20px !important;
+    display: inline-block !important;
+    margin-bottom: 0 !important;
+    color: inherit !important;
+    line-height: 1;
+}
+
 .info-card:hover .info-card-icon {
     transform: scale(1.1) rotate(-5deg);
 }
