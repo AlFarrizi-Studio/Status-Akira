@@ -10,6 +10,7 @@
 const CONFIG = {
     API_ENDPOINT: 'https://unclaiming-fully-camron.ngrok-free.dev/all',
     DISCORD_WEBHOOK: 'https://discord.com/api/webhooks/1473932172648910929/jk235pR-fDDrg5aBN82jFwOYG5RAmbykoiN0VGv2dN4C2pL8afAshpzML85ctq37uHUU',
+    MAINTENANCE: true,
     REFRESH_INTERVAL: 1000,
     PROGRESS_UPDATE_INTERVAL: 100,
     CHART_HISTORY_LENGTH: 30,
@@ -23,6 +24,7 @@ const CONFIG = {
 const state = {
     apiData: null,
     isOnline: false,
+    isMaintenance: !!CONFIG.MAINTENANCE,
     lastUpdated: null,
     charts: {},
     refreshInterval: null,
@@ -117,10 +119,74 @@ function initElements() {
     };
 }
 
+function isMaintenanceMode() {
+    return state.isMaintenance === true;
+}
+
+function updateMaintenanceState() {
+    state.isOnline = false;
+
+    if (elements.apiStatusIndicator) {
+        elements.apiStatusIndicator.classList.add('offline');
+        var text = elements.apiStatusIndicator.querySelector('.status-text');
+        if (text) text.textContent = 'Maintenance';
+    }
+
+    safeSetText(elements.lastUpdated, 'Maintenance mode');
+    safeSetText(elements.apiStatus, 'Maintenance');
+    safeSetText(elements.responseTime, '--ms');
+    safeSetText(elements.playingCount, 'Maintenance');
+
+    if (elements.nowPlayingContainer) {
+        elements.nowPlayingContainer.innerHTML =
+            '<div class="empty-state">' +
+            '<i class="fas fa-tools"></i>' +
+            '<p>Dashboard is under maintenance</p>' +
+            '</div>';
+    }
+
+    state.nowPlayingState.tracks = {};
+    state.nowPlayingState.lastTrackIds = [];
+}
+
+function setMaintenanceMode(isEnabled, options) {
+    options = options || {};
+    var maintenanceEnabled = isEnabled === true;
+
+    state.isMaintenance = maintenanceEnabled;
+    CONFIG.MAINTENANCE = maintenanceEnabled;
+
+    if (maintenanceEnabled) {
+        stopAutoRefresh();
+        stopProgressTimer();
+        updateMaintenanceState();
+
+        if (!options.silent) {
+            showToast('Maintenance Active', 'All dashboard activity has been paused.', 'warning');
+        }
+        return;
+    }
+
+    if (!options.silent) {
+        showToast('Maintenance Disabled', 'Dashboard activity is running again.', 'success');
+    }
+
+    fetchData();
+    if (!document.hidden) {
+        startAutoRefresh();
+        startProgressTimer();
+    }
+}
+
 // ============================================
 // AUTO REFRESH FUNCTIONS
 // ============================================
 function startAutoRefresh() {
+    if (isMaintenanceMode()) {
+        stopAutoRefresh();
+        return;
+    }
+
     if (state.refreshInterval) {
         clearInterval(state.refreshInterval);
         state.refreshInterval = null;
@@ -145,6 +211,11 @@ function stopAutoRefresh() {
 // PROGRESS TIMER FUNCTIONS
 // ============================================
 function startProgressTimer() {
+    if (isMaintenanceMode()) {
+        stopProgressTimer();
+        return;
+    }
+
     if (state.progressInterval) {
         clearInterval(state.progressInterval);
     }
@@ -165,6 +236,8 @@ function stopProgressTimer() {
 }
 
 function updateProgressLocally() {
+    if (isMaintenanceMode()) return;
+
     var now = Date.now();
 
     Object.keys(state.nowPlayingState.tracks).forEach(function (guildId) {
@@ -223,9 +296,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         });
 
-    fetchData();
-    startAutoRefresh();
-    startProgressTimer();
+    setMaintenanceMode(!!CONFIG.MAINTENANCE, { silent: true });
 
 
 });
@@ -456,6 +527,11 @@ function navigateToPage(pageName, updateHash) {
 // API DATA FETCHING
 // ============================================
 function fetchData() {
+    if (isMaintenanceMode()) {
+        updateMaintenanceState();
+        return;
+    }
+
     var startTime = performance.now();
 
     fetch(CONFIG.API_ENDPOINT, {
@@ -470,6 +546,11 @@ function fetchData() {
             return response.json();
         })
         .then(function (json) {
+            if (isMaintenanceMode()) {
+                updateMaintenanceState();
+                return;
+            }
+
             var responseTime = Math.round(performance.now() - startTime);
 
             var data = json.data || json;
@@ -501,6 +582,10 @@ function fetchData() {
             }
         })
         .catch(function (error) {
+            if (isMaintenanceMode()) {
+                updateMaintenanceState();
+                return;
+            }
 
             state.isOnline = false;
             updateOfflineState();
@@ -1388,6 +1473,11 @@ function initFeedbackForm() {
 }
 
 function submitFeedbackToDiscord(form) {
+    if (isMaintenanceMode()) {
+        showToast('Maintenance', 'Feedback is temporarily unavailable during maintenance.', 'warning');
+        return;
+    }
+
     var btn = form.querySelector('.submit-btn');
     var originalHTML = btn.innerHTML;
 
@@ -1870,6 +1960,11 @@ function fallbackCopy(text) {
 // MANUAL REFRESH FUNCTIONS
 // ============================================
 function refreshSources() {
+    if (isMaintenanceMode()) {
+        showToast('Maintenance', 'Sources refresh is disabled during maintenance.', 'warning');
+        return;
+    }
+
     state.sourcesLoaded = false;
     if (state.apiData) {
         updateSources(state.apiData);
@@ -1879,6 +1974,11 @@ function refreshSources() {
 }
 
 function refreshFilters() {
+    if (isMaintenanceMode()) {
+        showToast('Maintenance', 'Filters refresh is disabled during maintenance.', 'warning');
+        return;
+    }
+
     state.filtersLoaded = false;
     if (state.apiData) {
         updateFilters(state.apiData);
@@ -1909,6 +2009,11 @@ document.addEventListener('visibilitychange', function () {
         stopAutoRefresh();
         stopProgressTimer();
     } else {
+        if (isMaintenanceMode()) {
+            updateMaintenanceState();
+            return;
+        }
+
         fetchData();
         startAutoRefresh();
         startProgressTimer();
@@ -1930,6 +2035,8 @@ window.dashboard = {
     showToast: showToast,
     refreshSources: refreshSources,
     refreshFilters: refreshFilters,
+    setMaintenanceMode: setMaintenanceMode,
+    isMaintenanceMode: isMaintenanceMode,
     startAutoRefresh: startAutoRefresh,
     stopAutoRefresh: stopAutoRefresh,
     startProgressTimer: startProgressTimer,
