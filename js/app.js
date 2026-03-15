@@ -10,7 +10,7 @@
 const CONFIG = {
     API_ENDPOINT: 'https://unclaiming-fully-camron.ngrok-free.dev/all',
     DISCORD_WEBHOOK: 'https://discord.com/api/webhooks/1473932172648910929/jk235pR-fDDrg5aBN82jFwOYG5RAmbykoiN0VGv2dN4C2pL8afAshpzML85ctq37uHUU',
-    MAINTENANCE: true,
+    MAINTENANCE: false,
     REFRESH_INTERVAL: 1000,
     PROGRESS_UPDATE_INTERVAL: 100,
     CHART_HISTORY_LENGTH: 30,
